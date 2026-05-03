@@ -32,10 +32,14 @@
 
       <!-- ACTION BUTTONS -->
       <div class="flex gap-3">
-        <button @click="openModal('check-in')" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition">
+        <button x-show="attendanceStatus === 'not_checked_in' || attendanceStatus === 'checked_out'"
+                @click="openModal('check-in')" 
+                class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition">
           Check In
         </button>
-        <button @click="openModal('check-out')" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition">
+        <button x-show="attendanceStatus === 'checked_in'"
+                @click="openModal('check-out')" 
+                class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition">
           Check Out
         </button>
       </div>
@@ -170,12 +174,45 @@
         marker: null,
         submitting: false,
         locationLoading: false,
+        attendanceStatus: 'not_checked_in', // 'not_checked_in', 'checked_in', 'checked_out'
 
         init() {
+          this.checkAttendanceStatus();
           this.initMap();
           this.getLocation();
           this.startClock();
           this.initCamera();
+        },
+
+        async checkAttendanceStatus() {
+          try {
+            const response = await fetch('/attendance/status', {
+              headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+              this.attendanceStatus = result.status;
+              
+              // Update status display
+              if (result.status === 'checked_in') {
+                document.getElementById('statusContent').innerHTML = `
+                  <p class="text-green-600 text-sm mb-4">✓ Anda sudah check-in hari ini</p>
+                  <p class="text-4xl font-bold text-green-600">${this.currentTime}</p>
+                `;
+              } else if (result.status === 'checked_out') {
+                document.getElementById('statusContent').innerHTML = `
+                  <p class="text-blue-600 text-sm mb-4">✓ Anda sudah check-out hari ini</p>
+                  <p class="text-4xl font-bold text-blue-600">${this.currentTime}</p>
+                `;
+              }
+            }
+          } catch (error) {
+            console.error('Error checking attendance status:', error);
+          }
         },
 
         startClock() {
@@ -319,6 +356,8 @@
           this.photo = null;
           this.photoPreview = null;
           this.map = null;
+          // Refresh attendance status when closing modal
+          this.checkAttendanceStatus();
         },
 
         capturePhoto() {
@@ -361,6 +400,11 @@
             return;
           }
 
+          // Prevent double submission
+          if (this.submitting) {
+            return;
+          }
+
           this.submitting = true;
 
           const formData = new FormData();
@@ -383,12 +427,13 @@
 
             if (response.ok) {
               this.showMessage(result.message, 'success');
-              this.closeModal();
-              // Update status content
-              document.getElementById('statusContent').innerHTML = `
-                <p class="text-gray-600 text-sm mb-4">Status: ${this.modalType === 'check-in' ? 'Check In Berhasil' : 'Check Out Berhasil'}</p>
-                <p class="text-4xl font-bold text-green-600">${this.currentTime}</p>
-              `;
+              
+              // Update status and close modal after a brief delay
+              await this.checkAttendanceStatus();
+              
+              setTimeout(() => {
+                this.closeModal();
+              }, 500);
             } else {
               this.showMessage(result.message, 'error');
             }

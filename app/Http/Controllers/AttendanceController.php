@@ -11,6 +11,22 @@ class AttendanceController
   {
   }
 
+  public function getTodayStatus(Request $request)
+  {
+    try {
+      $status = $this->service->getTodayAttendanceStatus();
+
+      return response()->json([
+        'status' => $status['status'],
+        'data' => $status['data']
+      ]);
+    } catch (\Exception $e) {
+      return response()->json([
+        'message' => $e->getMessage()
+      ], 400);
+    }
+  }
+
   public function checkIn(Request $request)
   {
     $request->validate([

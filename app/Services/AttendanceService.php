@@ -8,6 +8,34 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceService 
 {
+  public function getTodayAttendanceStatus()
+  {
+    $user = \Illuminate\Support\Facades\Auth::user();
+    
+    $attendance = Attendance::where('user_id', $user->id)
+      ->whereDate('check_in_time', today())
+      ->first();
+
+    if (!$attendance) {
+      return [
+        'status' => 'not_checked_in',
+        'data' => null
+      ];
+    }
+
+    if ($attendance->check_out_time) {
+      return [
+        'status' => 'checked_out',
+        'data' => $attendance
+      ];
+    }
+
+    return [
+      'status' => 'checked_in',
+      'data' => $attendance
+    ];
+  }
+
   public function checkIn(array $data)
   {
     $user = Auth::user();

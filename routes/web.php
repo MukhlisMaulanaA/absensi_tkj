@@ -19,6 +19,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
+  Route::get('/attendance/status', [AttendanceController::class, 'getTodayStatus']);
   Route::post('/check-in', [AttendanceController::class, 'checkIn']);
   Route::post('/check-out', [AttendanceController::class, 'checkOut']);
 });
