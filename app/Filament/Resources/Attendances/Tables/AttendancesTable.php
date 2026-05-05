@@ -10,6 +10,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -19,52 +20,79 @@ class AttendancesTable
     {
         return $table
             ->columns([
-                TextColumn::make('user_id')
-                    ->numeric()
+                TextColumn::make('user.name')
+                    ->label('Employee')
+                    ->searchable()
+                    ->sortable()
+                    ->wrap(),
+                TextColumn::make('location.name')
+                    ->label('Location')
+                    ->searchable()
                     ->sortable(),
-                TextColumn::make('location_id')
-                    ->numeric()
-                    ->sortable(),
+                BadgeColumn::make('status')
+                    ->label('Status')
+                    ->formatStateUsing(function ($state) {
+                        $statuses = [
+                            'on_time' => 'On Time',
+                            'late' => 'Late',
+                            'absent' => 'Absent',
+                        ];
+                        return $statuses[$state] ?? $state;
+                    })
+                    ->colors([
+                        'success' => 'on_time',
+                        'warning' => 'late',
+                        'danger' => 'absent',
+                    ])
+                    ->getStateUsing(function ($record) {
+                        if (!$record->check_in_time) {
+                            return 'absent';
+                        }
+                        return $record->late_minutes > 0 ? 'late' : 'on_time';
+                    }),
                 TextColumn::make('check_in_time')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('check_in_latitude')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('check_in_longitude')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('check_in_photo')
-                    ->searchable(),
+                    ->label('Check-In')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->wrap(),
                 TextColumn::make('check_out_time')
-                    ->dateTime()
+                    ->label('Check-Out')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->wrap()
+                    ->placeholder('-'),
+                TextColumn::make('working_hours')
+                    ->label('Working Hours')
+                    ->getStateUsing(function ($record) {
+                        if (!$record->check_in_time || !$record->check_out_time) {
+                            return '-';
+                        }
+                        return $record->working_hours . 'h';
+                    })
                     ->sortable(),
-                TextColumn::make('check_out_latitude')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('check_out_longitude')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('check_out_photo')
-                    ->searchable(),
                 TextColumn::make('late_minutes')
+                    ->label('Late (mins)')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->getStateUsing(function ($record) {
+                        return $record->late_minutes > 0 ? $record->late_minutes : '-';
+                    }),
                 IconColumn::make('is_within_radius')
-                    ->boolean(),
+                    ->label('Within Radius')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle'),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Date')
+                    ->date('d/m/Y')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('check_in_time', 'desc')
             ->filters([
                 TrashedFilter::make(),
             ])
