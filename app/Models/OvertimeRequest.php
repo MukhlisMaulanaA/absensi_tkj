@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
+use \Illuminate\Notifications\Notifiable;
+
 
 class OvertimeRequest extends Model
 {
@@ -20,14 +22,10 @@ class OvertimeRequest extends Model
     'approved_by',
   ];
 
-  protected function casts(): array
-  {
-    return [
-      'start_time' => 'datetime',
-      'end_time' => 'datetime',
-    ];
-  }
-
+  protected $casts = [
+    'start_time' => 'datetime',
+    'end_time' => 'datetime',
+  ];
   /*
   |--------------------------------------------------------------------------
   | RELATIONSHIPS

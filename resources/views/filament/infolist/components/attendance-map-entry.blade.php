@@ -67,7 +67,7 @@
 
             const checkInInfoWindow = new google.maps.InfoWindow({
               content: `
-                <div style="font-family: sans-serif; padding: 8px 12px; min-width: 160px;">
+                <div style="font-family: sans-serif; padding: 5px 10px; min-width: 160px;">
                   <p style="margin: 0 0 4px; font-weight: 700; color: #065f46; font-size: 13px;">✅ Check-In</p>
                   <p style="margin: 0 0 2px; font-size: 12px; color: #374151;">🕐 {{ $record->check_in_time->format('d/m/Y H:i:s') }}</p>
                   <p style="margin: 0; font-size: 11px; color: #6b7280;">📍 {{ number_format($record->check_in_latitude, 6) }}, {{ number_format($record->check_in_longitude, 6) }}</p>

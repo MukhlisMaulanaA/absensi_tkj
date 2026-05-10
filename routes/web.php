@@ -3,14 +3,13 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\OvertimeRequestController;
 
 Route::get('/', function () {
   return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-  return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [AttendanceController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
   Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -20,8 +19,8 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth'])->group(function () {
   Route::get('/attendance/status', [AttendanceController::class, 'getTodayStatus']);
-  Route::post('/check-in', [AttendanceController::class, 'checkIn']);
-  Route::post('/check-out', [AttendanceController::class, 'checkOut']);
+  Route::post('/check-in', [AttendanceController::class, 'checkIn'])->name('check-in');
+  Route::post('/check-out', [AttendanceController::class, 'checkOut'])->name('check-out');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -31,3 +30,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
+Route::middleware(['auth'])->group(function () {
+  Route::get('/overtime/request', [OvertimeRequestController::class, 'create'])->name('overtime.create');
+  Route::post('/overtime/request', [OvertimeRequestController::class, 'store'])->name('overtime.store');
+});

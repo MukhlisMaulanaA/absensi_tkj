@@ -4,14 +4,35 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\AttendanceService;
+use App\Models\Attendance;
+use Illuminate\Support\Facades\Auth;
 
-class AttendanceController 
+class AttendanceController
 {
   public function __construct(protected AttendanceService $service)
   {
   }
 
-  public function getTodayStatus(Request $request)
+  public function dashboard()
+  {
+    $user = Auth::user();
+    $todayStatus = $this->service->getTodayAttendanceStatus();
+
+    // Get last 3 attendance records
+    $recentAttendances = Attendance::where('user_id', $user->id)
+      ->orderBy('check_in_time', 'desc')
+      ->limit(3)
+      ->get();
+
+    return view('dashboard', [
+      'user' => $user,
+      'todayStatus' => $todayStatus,
+      'recentAttendances' => $recentAttendances,
+    ]);
+  }
+
+  // Tadi di sini error karena tidak ada nama fungsi:
+  public function getStatus()
   {
     try {
       $status = $this->service->getTodayAttendanceStatus();
