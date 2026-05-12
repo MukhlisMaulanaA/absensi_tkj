@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/attendance', function () {
     return view('attendance.index');
   })->name('attendance.page');
+  Route::get('/attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
 });
 
 require __DIR__ . '/auth.php';

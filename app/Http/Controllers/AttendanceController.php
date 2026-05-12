@@ -91,4 +91,26 @@ class AttendanceController
       ], 400);
     }
   }
+
+  public function history()
+  {
+    $user = Auth::user();
+
+    // Get attendance history with pagination
+    $attendances = Attendance::where('user_id', $user->id)
+      ->orderBy('check_in_time', 'desc')
+      ->paginate(10, ['*'], 'attendance_page');
+
+    // Get overtime request history with pagination
+    $overtimeRequests = \App\Models\OvertimeRequest::where('user_id', $user->id)
+      ->with('approver')
+      ->orderBy('created_at', 'desc')
+      ->paginate(10, ['*'], 'overtime_page');
+
+    return view('attendance.history', [
+      'user' => $user,
+      'attendances' => $attendances,
+      'overtimeRequests' => $overtimeRequests,
+    ]);
+  }
 }

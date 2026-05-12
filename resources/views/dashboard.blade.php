@@ -73,13 +73,13 @@
             <button @click="openModal('check-in')"
               class="w-40 h-40 rounded-full bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold text-2xl shadow-lg hover:shadow-2xl transform transition hover:scale-105 focus:outline-none flex flex-col items-center justify-center gap-2">
               <span class="text-4xl">📍</span>
-              <span>{{ __('Check In') }}</span>
+              <span>{{ __('Absen Masuk') }}</span>
             </button>
           @elseif($todayStatus['status'] === 'checked_in')
             <button @click="openModal('check-out')"
               class="w-40 h-40 rounded-full bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white font-bold text-2xl shadow-lg hover:shadow-2xl transform transition hover:scale-105 focus:outline-none flex flex-col items-center justify-center gap-2">
               <span class="text-4xl">🚪</span>
-              <span>{{ __('Check Out') }}</span>
+              <span>{{ __('Absen Pulang') }}</span>
             </button>
           @else
             <button type="button" disabled
@@ -93,7 +93,7 @@
         <!-- Check In / Check Out Time Record -->
         <div class="grid grid-cols-2 gap-4">
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-2">{{ __('Check In Time') }}</p>
+            <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-2">{{ __('Jam Absen Masuk') }}</p>
             <p class="text-2xl font-mono font-bold text-blue-700">
               @if ($todayStatus['data'])
                 {{ $todayStatus['data']->check_in_time->format('H:i') }}
@@ -103,7 +103,7 @@
             </p>
           </div>
           <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-2">{{ __('Check Out Time') }}</p>
+            <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-2">{{ __('Jam Absen Pulang') }}</p>
             <p class="text-2xl font-mono font-bold text-red-700">
               @if ($todayStatus['data'] && $todayStatus['data']->check_out_time)
                 {{ $todayStatus['data']->check_out_time->format('H:i') }}
@@ -130,7 +130,7 @@
               <span class="mr-2">⏰</span>
               {{ __('Request Overtime') }}
             </a>
-            <a href="{{ route('attendance.page') }}"
+            <a href="{{ route('attendance.history') }}"
               class="inline-flex items-center px-6 py-3 border-2 border-indigo-400 text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition">
               <span class="mr-2">📋</span>
               {{ __('View All History') }}
@@ -187,7 +187,7 @@
           @endif
 
           <div class="mt-4 text-center">
-            <a href="{{ route('attendance.page') }}"
+            <a href="{{ route('attendance.history') }}"
               class="text-indigo-600 hover:text-indigo-700 font-semibold text-sm">
               {{ __('View Complete History') }} →
             </a>
