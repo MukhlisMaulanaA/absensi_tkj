@@ -23,7 +23,7 @@
             <div>
               <p class="text-sm text-gray-600">{{ __('Greeting') }},</p>
               <h3 class="text-2xl font-bold text-gray-900">{{ explode(' ', $user->name)[0] }}!</h3>
-              <p class="text-sm text-gray-500 mt-1">{{ $user->role === 'admin' ? 'Administrator' : 'Employee' }} •
+              <p class="text-sm text-gray-500 mt-1">{{ $user->jabatan}} •
                 {{ $user->location?->name ?? 'No Location Assigned' }}</p>
             </div>
           </div>
