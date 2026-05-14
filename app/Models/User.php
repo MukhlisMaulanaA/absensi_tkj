@@ -11,87 +11,87 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, SoftDeletes;
+  use HasFactory, Notifiable, SoftDeletes;
 
-    protected $fillable = [
-        'name',
-        'username',
-        'email',
-        'jabatan',
-        'password',
-        'role',
-        'location_id',
-        'schedule_id',
-        'device_id',
+  protected $fillable = [
+    'name',
+    'username',
+    'email',
+    'jabatan',
+    'password',
+    'role',
+    'location_id',
+    'schedule_id',
+    'device_id',
+  ];
+
+  protected $hidden = [
+    'password',
+    'remember_token',
+  ];
+
+  protected function casts(): array
+  {
+    return [
+      'email_verified_at' => 'datetime',
     ];
+  }
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+  /*
+  |--------------------------------------------------------------------------
+  | RELATIONSHIPS
+  |--------------------------------------------------------------------------
+  */
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-        ];
-    }
+  public function location()
+  {
+    return $this->belongsTo(Location::class);
+  }
 
-    /*
-    |--------------------------------------------------------------------------
-    | RELATIONSHIPS
-    |--------------------------------------------------------------------------
-    */
+  public function schedule()
+  {
+    return $this->belongsTo(Schedule::class);
+  }
 
-    public function location()
-    {
-        return $this->belongsTo(Location::class);
-    }
+  public function attendances()
+  {
+    return $this->hasMany(Attendance::class);
+  }
 
-    public function schedule()
-    {
-        return $this->belongsTo(Schedule::class);
-    }
+  public function overtimeRequests()
+  {
+    return $this->hasMany(OvertimeRequest::class);
+  }
 
-    public function attendances()
-    {
-        return $this->hasMany(Attendance::class);
-    }
+  public function approvedOvertimes()
+  {
+    return $this->hasMany(OvertimeRequest::class, 'approved_by');
+  }
 
-    public function overtimeRequests()
-    {
-        return $this->hasMany(OvertimeRequest::class);
-    }
+  /*
+  |--------------------------------------------------------------------------
+  | FILAMENT ACCESS
+  |--------------------------------------------------------------------------
+  */
 
-    public function approvedOvertimes()
-    {
-        return $this->hasMany(OvertimeRequest::class, 'approved_by');
-    }
+  public function canAccessPanel(Panel $panel): bool
+  {
+    return $this->role === 'admin';
+  }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FILAMENT ACCESS
-    |--------------------------------------------------------------------------
-    */
+  /*
+  |--------------------------------------------------------------------------
+  | HELPERS
+  |--------------------------------------------------------------------------
+  */
 
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->role === 'admin';
-    }
+  public function isAdmin(): bool
+  {
+    return $this->role === 'admin';
+  }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HELPERS
-    |--------------------------------------------------------------------------
-    */
-
-    public function isAdmin(): bool
-    {
-        return $this->role === 'admin';
-    }
-
-    public function isEmployee(): bool
-    {
-        return $this->role === 'employee';
-    }
+  public function isEmployee(): bool
+  {
+    return $this->role === 'employee';
+  }
 }
