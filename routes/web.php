@@ -6,7 +6,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\OvertimeRequestController;
 
 Route::get('/', function () {
-  return view('welcome');
+  return redirect()->route('login');
 });
 
 Route::get('/dashboard', [AttendanceController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
