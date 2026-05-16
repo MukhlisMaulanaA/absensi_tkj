@@ -52,7 +52,7 @@
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Preset Cepat</p>
                 <div class="flex flex-wrap gap-2">
-                  @foreach ([['16:00', '18:00', false], ['16:00', '19:00', false], ['16:00', '20:00', false], ['16:00', '21:00', false], ['20:00', '23:00', false], ['22:00', '01:00', true], ['22:00', '02:00', true]] as [$s, $e, $nextDay])
+                  @foreach ([['16:00', '18:00', false], ['16:00', '19:00', false], ['16:00', '20:00', false], ['16:00', '21:00', false], ['16:00', '22:00', false], ['16:00', '23:00', false], ['16:00', '23:59', false], ['20:00', '23:00', false], ['22:00', '01:00', true], ['22:00', '02:00', true]] as [$s, $e, $nextDay])
                     <button type="button"
                       onclick="setPreset('{{ $s }}','{{ $e }}',{{ $nextDay ? 'true' : 'false' }})"
                       class="preset-btn px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-mono font-medium text-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors">
@@ -147,12 +147,12 @@
                   Lampirkan Gambar<span class="text-red-400 font-normal"> (wajib dilampirkan)</span>
                 </label>
                 <div class="relative">
-                  <input type="file" name="image" id="imageInput" accept="image/*"
-                    class="hidden" required/>
+                  <input type="file" name="image" id="imageInput" accept="image/*" class="hidden" required />
                   <label for="imageInput"
                     class="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors">
                     <div class="text-center">
-                      <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
                       <p id="imageLabel" class="text-sm text-gray-600">
@@ -313,64 +313,66 @@
       submitBtn.textContent = 'Sedang memproses...';
 
       fetch(form.action, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': formData.get('_token'),
-          'Accept': 'application/json',
-        },
-        body: formData
-      })
-      .then(response => {
-        if (response.status === 422) {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': formData.get('_token'),
+            'Accept': 'application/json',
+          },
+          body: formData
+        })
+        .then(response => {
+          if (response.status === 422) {
+            return response.json().then(data => {
+              throw {
+                errors: data.errors
+              };
+            });
+          }
           return response.json().then(data => {
-            throw { errors: data.errors };
+            if (!response.ok) {
+              throw data;
+            }
+            return data;
           });
-        }
-        return response.json().then(data => {
-          if (!response.ok) {
-            throw data;
-          }
-          return data;
-        });
-      })
-      .then(data => {
-        if (data.success || data.message) {
-          if (window.Swal) {
-            window.Swal.fire({
-              title: 'Berhasil!',
-              text: data.message || 'Permintaan lembur berhasil diajukan.',
-              icon: 'success',
-              confirmButtonText: 'OK',
-            }).then(() => {
+        })
+        .then(data => {
+          if (data.success || data.message) {
+            if (window.Swal) {
+              window.Swal.fire({
+                title: 'Berhasil!',
+                text: data.message || 'Permintaan lembur berhasil diajukan.',
+                icon: 'success',
+                confirmButtonText: 'OK',
+              }).then(() => {
+                window.location.href = data.redirect || '{{ route('dashboard') }}';
+              });
+            } else {
+              alert(data.message || 'Permintaan lembur berhasil diajukan.');
               window.location.href = data.redirect || '{{ route('dashboard') }}';
-            });
-          } else {
-            alert(data.message || 'Permintaan lembur berhasil diajukan.');
-            window.location.href = data.redirect || '{{ route('dashboard') }}';
+            }
           }
-        }
-      })
-      .catch(error => {
-        if (error.errors) {
-          showErrors(error.errors);
-        } else {
-          if (window.Swal) {
-            window.Swal.fire({
-              title: 'Error',
-              text: 'Terjadi kesalahan: ' + (error.message || 'Unknown error'),
-              icon: 'error',
-              confirmButtonText: 'OK',
-            });
+        })
+        .catch(error => {
+          if (error.errors) {
+            showErrors(error.errors);
           } else {
-            alert('Terjadi kesalahan: ' + (error.message || 'Unknown error'));
+            if (window.Swal) {
+              window.Swal.fire({
+                title: 'Error',
+                text: 'Terjadi kesalahan: ' + (error.message || 'Unknown error'),
+                icon: 'error',
+                confirmButtonText: 'OK',
+              });
+            } else {
+              alert('Terjadi kesalahan: ' + (error.message || 'Unknown error'));
+            }
           }
-        }
-      })
-      .finally(() => {
-        // Re-enable button and restore text
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      });
+        })
+        .finally(() => {
+          // Re-enable button and restore text
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        });
     }
 
     function showErrors(errors) {
