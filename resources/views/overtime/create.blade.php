@@ -52,7 +52,7 @@
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Preset Cepat</p>
                 <div class="flex flex-wrap gap-2">
-                  @foreach ([['17:00', '18:00', false], ['17:00', '19:00', false], ['17:00', '20:00', false], ['17:00', '21:00', false], ['20:00', '23:00', false], ['22:00', '01:00', true], ['22:00', '02:00', true]] as [$s, $e, $nextDay])
+                  @foreach ([['16:00', '18:00', false], ['16:00', '19:00', false], ['16:00', '20:00', false], ['16:00', '21:00', false], ['20:00', '23:00', false], ['22:00', '01:00', true], ['22:00', '02:00', true]] as [$s, $e, $nextDay])
                     <button type="button"
                       onclick="setPreset('{{ $s }}','{{ $e }}',{{ $nextDay ? 'true' : 'false' }})"
                       class="preset-btn px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-mono font-medium text-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors">
@@ -74,7 +74,7 @@
                       class="bg-gray-50 border-2 border-gray-200 rounded-xl p-3 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors">
                       <div
                         class="font-mono text-3xl font-semibold text-gray-800 text-center tracking-wider mb-2 leading-none">
-                        <span id="startH">17</span><span class="text-gray-300">:</span><span id="startM">00</span>
+                        <span id="startH">16</span><span class="text-gray-300">:</span><span id="startM">00</span>
                       </div>
                       <div class="flex items-end gap-1.5">
                         <div class="flex flex-col items-center gap-1 flex-1">
@@ -194,7 +194,7 @@
 
     // endH stored as 0-47 internally (24–47 = next day 00–23)
     const state = {
-      startH: 17,
+      startH: 16,
       startM: 0,
       endH: 20,
       endM: 0
