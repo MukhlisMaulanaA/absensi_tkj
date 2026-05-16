@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -29,6 +30,13 @@ class OvertimeRequestsTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge(),
+                ImageColumn::make('image')
+                    ->label('Gambar')
+                    ->disk('public')
+                    ->circular()
+                    ->url(fn ($record) => !empty($record->image) ? asset('storage/' . $record->image) : null)
+                    ->openUrlInNewTab()
+                    ->toggleable(),
                 TextColumn::make('approved_by')
                     ->numeric()
                     ->sortable(),

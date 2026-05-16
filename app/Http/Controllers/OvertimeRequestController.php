@@ -33,15 +33,24 @@ class OvertimeRequestController extends Controller
       'start_time' => 'required|date',
       'end_time' => 'required|date|after:start_time',
       'description' => 'nullable|string|max:1000',
+      'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
     ]);
 
-    $overtime = OvertimeRequest::create([
+    $data = [
       'user_id' => Auth::id(),
       'start_time' => Carbon::parse($validated['start_time']),
       'end_time' => Carbon::parse($validated['end_time']),
       'description' => $validated['description'] ?? null,
       'status' => 'pending',
-    ]);
+    ];
+
+    // Handle image upload
+    if ($request->hasFile('image')) {
+      $imagePath = $request->file('image')->store('overtime-requests', 'public');
+      $data['image'] = $imagePath;
+    }
+
+    $overtime = OvertimeRequest::create($data);
 
     if ($request->expectsJson()) {
       return response()->json([

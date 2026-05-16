@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OvertimeRequests\Schemas;
 
 use App\Models\OvertimeRequest;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -20,6 +21,13 @@ class OvertimeRequestInfolist
                     ->dateTime(),
                 TextEntry::make('description')
                     ->columnSpanFull(),
+                ImageEntry::make('image')
+                    ->label('Lampiran Gambar')
+                    ->disk('public')
+                    ->url(fn ($record) => !empty($record->image) ? asset('storage/' . $record->image) : null)
+                    ->openUrlInNewTab()
+                    ->columnSpanFull()
+                    ->visible(fn (OvertimeRequest $record): bool => !empty($record->image)),
                 TextEntry::make('status')
                     ->badge(),
                 TextEntry::make('approved_by')

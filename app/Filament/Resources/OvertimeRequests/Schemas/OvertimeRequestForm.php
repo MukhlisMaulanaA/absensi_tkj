@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\OvertimeRequests\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -23,6 +24,14 @@ class OvertimeRequestForm
                     ->required(),
                 Textarea::make('description')
                     ->required()
+                    ->columnSpanFull(),
+                FileUpload::make('image')
+                    ->label('Lampiran Gambar')
+                    ->image()
+                    ->imagePreviewHeight('250')
+                    ->maxSize(5120)
+                    ->directory('overtime-requests')
+                    ->visibility('public')
                     ->columnSpanFull(),
                 Select::make('status')
                     ->options(['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected'])

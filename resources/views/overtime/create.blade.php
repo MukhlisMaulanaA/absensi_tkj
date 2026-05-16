@@ -141,6 +141,30 @@
                   placeholder="..." required>{{ old('description') }}</textarea>
               </div>
 
+              {{-- Image Upload --}}
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">
+                  Lampirkan Gambar<span class="text-red-400 font-normal"> (wajib dilampirkan)</span>
+                </label>
+                <div class="relative">
+                  <input type="file" name="image" id="imageInput" accept="image/*"
+                    class="hidden" required/>
+                  <label for="imageInput"
+                    class="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors">
+                    <div class="text-center">
+                      <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <p id="imageLabel" class="text-sm text-gray-600">
+                        <span class="font-medium text-blue-600">Klik untuk memilih</span> atau seret gambar di sini
+                      </p>
+                      <p id="imageName" class="text-xs text-gray-400 mt-1"></p>
+                    </div>
+                  </label>
+                  <img id="imagePreview" src="" alt="Preview" class="hidden mt-3 max-h-40 rounded-lg" />
+                </div>
+              </div>
+
               {{-- Actions --}}
               <div class="flex items-center gap-3">
                 <button type="submit" id="submitBtn"
@@ -364,6 +388,61 @@
     }
 
     render();
+
+    // Image upload handling
+    const imageInput = document.getElementById('imageInput');
+    const imageLabel = document.getElementById('imageLabel');
+    const imageName = document.getElementById('imageName');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadZone = imageInput.parentElement.querySelector('label');
+
+    // File input change
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        displayImagePreview(file);
+      }
+    });
+
+    // Drag and drop
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('border-blue-400', 'bg-blue-50');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('border-blue-400', 'bg-blue-50');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        imageInput.files = files;
+        displayImagePreview(files[0]);
+      }
+    });
+
+    function displayImagePreview(file) {
+      if (!file.type.startsWith('image/')) {
+        if (window.Swal) {
+          window.Swal.fire('Error', 'File harus berupa gambar', 'error');
+        } else {
+          alert('File harus berupa gambar');
+        }
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        imagePreview.classList.remove('hidden');
+        imageLabel.innerHTML = '<span class="text-green-600 font-medium">✓ Gambar dipilih</span>';
+        imageName.textContent = file.name;
+      };
+      reader.readAsDataURL(file);
+    }
   </script>
 
 </x-app-layout>

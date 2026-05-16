@@ -18,6 +18,7 @@ class OvertimeRequest extends Model
     'start_time',
     'end_time',
     'description',
+    'image',
     'status',
     'approved_by',
   ];
