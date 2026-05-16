@@ -1,295 +1,511 @@
 <x-app-layout>
-  <x-slot name="header">
-    <div class="flex justify-between items-center">
-      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        {{ __('Dashboard') }}
-      </h2>
-    </div>
-  </x-slot>
+  <div class="min-h-screen bg-slate-50 antialiased" x-data="attendanceApp()" x-init="init()">
 
-  <div class="py-8 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen" x-data="attendanceApp()"
-    x-init="init()">
+    <!-- Mobile Header -->
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-40">
+      <div class="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center">
+            <span class="text-white text-[10px] font-bold tracking-tight">TKJ</span>
+          </div>
+          <span class="text-sm font-semibold text-slate-900">Attendance</span>
+        </div>
 
-    <!-- A. IDENTITY ZONE (HEADER) -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-600">
-        <div class="flex items-center justify-between">
-          <!-- Profile Section -->
-          <div class="flex items-center gap-4">
+        <div>
+          @if ($todayStatus['status'] === 'not_checked_in')
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              {{ __('Not Checked In') }}
+            </span>
+          @elseif($todayStatus['status'] === 'checked_in')
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              {{ __('Checked In') }}
+            </span>
+          @else
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {{ __('Checked Out') }}
+            </span>
+          @endif
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 py-5 space-y-3.5 pb-10">
+
+      <!-- Identity Card -->
+      <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
             <div
-              class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+              class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm font-semibold shrink-0">
               {{ strtoupper(substr($user->name, 0, 1)) }}
             </div>
-            <div>
-              <p class="text-sm text-gray-600">{{ __('Greeting') }},</p>
-              <h3 class="text-2xl font-bold text-gray-900">{{ explode(' ', $user->name)[0] }}!</h3>
-              <p class="text-sm text-gray-500 mt-1">{{ $user->jabatan}} •
-                {{ $user->location?->name ?? 'No Location Assigned' }}</p>
-            </div>
-          </div>
 
-          <!-- Today's Status Badge -->
-          <div class="text-right">
-            <p class="text-xs uppercase tracking-wide text-gray-500 mb-2">{{ __('Today Status') }}</p>
-            @if ($todayStatus['status'] === 'not_checked_in')
-              <span
-                class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 border border-yellow-300">
-                <span class="w-2 h-2 bg-yellow-600 rounded-full mr-2"></span>
-                {{ __('Not Checked In') }}
-              </span>
-            @elseif($todayStatus['status'] === 'checked_in')
-              <span
-                class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 border border-blue-300">
-                <span class="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
-                {{ __('Checked In') }}
-              </span>
-            @else
-              <span
-                class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800 border border-green-300">
-                <span class="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
-                {{ __('Checked Out') }}
-              </span>
-            @endif
+            <div class="min-w-0">
+              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+                {{ __('Welcome Back') }}
+              </p>
+
+              <p class="text-base font-semibold text-slate-900 truncate">
+                {{ explode(' ', $user->name)[0] }}
+              </p>
+
+              <p class="text-xs text-slate-400 truncate">
+                {{ $user->jabatan }} &middot;
+                {{ $user->location?->name ?? 'No Location Assigned' }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- B. MAIN ZONE (HERO ACTION) -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-      <div class="bg-white rounded-lg shadow-lg p-8 text-center space-y-6">
+      <!-- Clock & Attendance -->
+      <div class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
 
-        <!-- Digital Clock & Date -->
-        <div>
-          <div class="text-6xl font-bold text-indigo-600 font-mono tracking-wider mb-2" x-text="currentTime">
+        <div class="text-center mb-7">
+          <p class="text-5xl font-thin text-slate-900 tracking-tighter tabular-nums leading-none" x-text="currentTime">
             00:00:00
-          </div>
-          <p class="text-lg text-gray-600" x-text="currentDate">Loading...</p>
+          </p>
+
+          <p class="text-xs text-slate-400 mt-2.5 font-medium" x-text="currentDate">
+            Loading...
+          </p>
         </div>
 
-        <!-- Attendance Trigger Button -->
-        <div class="flex justify-center">
+        <!-- Attendance Button -->
+        <div class="flex justify-center mb-7">
+
           @if ($todayStatus['status'] === 'not_checked_in')
             <button @click="openModal('check-in')"
-              class="w-40 h-40 rounded-full bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold text-2xl shadow-lg hover:shadow-2xl transform transition hover:scale-105 focus:outline-none flex flex-col items-center justify-center gap-2">
-              <span class="text-4xl">📍</span>
-              <span>{{ __('Absen Masuk') }}</span>
+              class="group flex flex-col items-center justify-center w-36 h-36 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-200 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+
+              <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7 mb-1.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+              </svg>
+
+              <span class="text-sm font-semibold tracking-wide">
+                {{ __('Check In') }}
+              </span>
             </button>
           @elseif($todayStatus['status'] === 'checked_in')
             <button @click="openModal('check-out')"
-              class="w-40 h-40 rounded-full bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white font-bold text-2xl shadow-lg hover:shadow-2xl transform transition hover:scale-105 focus:outline-none flex flex-col items-center justify-center gap-2">
-              <span class="text-4xl">🚪</span>
-              <span>{{ __('Absen Pulang') }}</span>
+              class="group flex flex-col items-center justify-center w-36 h-36 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-200 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-rose-200">
+
+              <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7 mb-1.5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h14" />
+              </svg>
+
+              <span class="text-sm font-semibold tracking-wide">
+                {{ __('Check Out') }}
+              </span>
             </button>
           @else
-            <button type="button" disabled
-              class="w-40 h-40 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 text-white font-bold text-2xl shadow-lg flex flex-col items-center justify-center gap-2 opacity-50 cursor-not-allowed">
-              <span class="text-4xl">✓</span>
-              <span>{{ __('Completed') }}</span>
-            </button>
+            <div
+              class="flex flex-col items-center justify-center w-36 h-36 rounded-full bg-slate-100 text-slate-400 cursor-not-allowed">
+
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 mb-1.5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+              </svg>
+
+              <span class="text-sm font-semibold tracking-wide">
+                {{ __('Completed') }}
+              </span>
+            </div>
           @endif
         </div>
 
-        <!-- Check In / Check Out Time Record -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-2">{{ __('Jam Absen Masuk') }}</p>
-            <p class="text-2xl font-mono font-bold text-blue-700">
+        <!-- Time Info -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+            <div class="flex items-center gap-1.5 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-500" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+              </svg>
+
+              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                {{ __('In') }}
+              </span>
+            </div>
+
+            <p class="text-xl font-semibold text-slate-900 tabular-nums">
               @if ($todayStatus['data'])
                 {{ $todayStatus['data']->check_in_time->format('H:i') }}
               @else
-                --:--
+                <span class="text-slate-200 font-light">--:--</span>
               @endif
             </p>
           </div>
-          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-2">{{ __('Jam Absen Pulang') }}</p>
-            <p class="text-2xl font-mono font-bold text-red-700">
+
+          <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+            <div class="flex items-center gap-1.5 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-rose-500" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h14" />
+              </svg>
+
+              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                {{ __('Out') }}
+              </span>
+            </div>
+
+            <p class="text-xl font-semibold text-slate-900 tabular-nums">
               @if ($todayStatus['data'] && $todayStatus['data']->check_out_time)
                 {{ $todayStatus['data']->check_out_time->format('H:i') }}
               @else
-                --:--
+                <span class="text-slate-200 font-light">--:--</span>
               @endif
             </p>
           </div>
         </div>
-
       </div>
-    </div>
 
-    <!-- C. SECONDARY ACTION & NAVIGATION ZONE -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 gap-8">
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
 
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">{{ __('Quick Actions') }}</h3>
-          <div class="flex gap-4 flex-wrap">
-            <a href="{{ route('overtime.create') }}"
-              class="inline-flex items-center px-6 py-3 border-2 border-amber-400 text-amber-600 font-semibold rounded-lg hover:bg-amber-50 transition">
-              <span class="mr-2">⏰</span>
-              {{ __('Request Overtime') }}
-            </a>
-            <a href="{{ route('attendance.history') }}"
-              class="inline-flex items-center px-6 py-3 border-2 border-indigo-400 text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition">
-              <span class="mr-2">📋</span>
-              {{ __('View All History') }}
-            </a>
-          </div>
+        <div class="px-4 py-3 border-b border-slate-50">
+          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+            {{ __('Quick Actions') }}
+          </p>
         </div>
 
-        <!-- Recent Attendance History -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">{{ __('Recent Attendance History') }}</h3>
+        <a href="{{ route('overtime.create') }}"
+          class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 group">
 
-          @if ($recentAttendances->count() > 0)
-            <div class="space-y-3">
-              @foreach ($recentAttendances as $attendance)
-                <div
-                  class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
-                  <div>
-                    <p class="font-semibold text-gray-900">{{ $attendance->check_in_time->format('l, d M Y') }}</p>
-                    <p class="text-sm text-gray-600 mt-1">
-                      <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium mr-2">
-                        In: {{ $attendance->check_in_time->format('H:i') }}
-                      </span>
-                      @if ($attendance->check_out_time)
-                        <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">
-                          Out: {{ $attendance->check_out_time->format('H:i') }}
-                        </span>
-                      @else
-                        <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">
-                          Not checked out
-                        </span>
-                      @endif
-                    </p>
-                  </div>
-                  <div class="text-right">
-                    @if ($attendance->is_within_radius)
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 5.884l.707-.707a2 2 0 012.828 0l.707.707m0 0l.707-.707a2 2 0 012.828 0l.707.707M12 5v3" />
+              </svg>
+            </div>
+
+            <span class="text-sm font-medium text-slate-700">
+              {{ __('Request Overtime') }}
+            </span>
+          </div>
+
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+
+        <a href="{{ route('attendance.history') }}"
+          class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors group">
+
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+
+            <span class="text-sm font-medium text-slate-700">
+              {{ __('View All History') }}
+            </span>
+          </div>
+
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Recent Attendance -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+        <div class="px-4 py-3 border-b border-slate-50 flex items-center justify-between">
+          <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+            {{ __('Recent Attendance') }}
+          </p>
+
+          <a href="{{ route('attendance.history') }}"
+            class="flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
+            {{ __('All') }}
+
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+
+        @if ($recentAttendances->count() > 0)
+          <div class="divide-y divide-slate-50">
+            @foreach ($recentAttendances as $attendance)
+              <div class="px-4 py-3.5 flex items-center justify-between hover:bg-slate-50/60 transition-colors">
+
+                <div>
+                  <p class="text-sm font-medium text-slate-800">
+                    {{ $attendance->check_in_time->format('l, d M Y') }}
+                  </p>
+
+                  <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span
+                      class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                      </svg>
+
+                      {{ $attendance->check_in_time->format('H:i') }}
+                    </span>
+
+                    @if ($attendance->check_out_time)
                       <span
-                        class="inline-flex items-center text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded">
-                        ✓ {{ __('On Site') }}
-                      </span>
-                    @else
-                      <span
-                        class="inline-flex items-center text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded">
-                        ✗ {{ __('Off Site') }}
+                        class="inline-flex items-center gap-1 text-[11px] font-medium text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                        </svg>
+
+                        {{ $attendance->check_out_time->format('H:i') }}
                       </span>
                     @endif
                   </div>
                 </div>
-              @endforeach
-            </div>
-          @else
-            <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-              <p class="text-gray-600">{{ __('No attendance records yet') }}</p>
-            </div>
-          @endif
 
-          <div class="mt-4 text-center">
-            <a href="{{ route('attendance.history') }}"
-              class="text-indigo-600 hover:text-indigo-700 font-semibold text-sm">
-              {{ __('View Complete History') }} →
-            </a>
+                <div class="shrink-0 ml-3">
+                  @if ($attendance->is_within_radius)
+                    <span
+                      class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+
+                      {{ __('On Site') }}
+                    </span>
+                  @else
+                    <span
+                      class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
+
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                      </svg>
+
+                      {{ __('Off Site') }}
+                    </span>
+                  @endif
+                </div>
+              </div>
+            @endforeach
           </div>
-        </div>
-
+        @else
+          <div class="px-4 py-10 text-center">
+            <p class="text-sm text-slate-400">
+              {{ __('No attendance records yet') }}
+            </p>
+          </div>
+        @endif
       </div>
-    </div>
+    </main>
 
-    <!-- ===================== MODAL ABSENSI ===================== -->
-    <div x-show="modalOpen" x-transition class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-end"
+    <!-- MODAL -->
+    <div x-show="modalOpen" x-transition.opacity
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end justify-center"
       @click.self="closeModal()">
 
-      <div class="bg-white w-full max-w-lg mx-auto rounded-t-2xl shadow-2xl z-50 max-h-[90vh] overflow-y-auto">
+      <div class="bg-white w-full max-w-md rounded-t-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
 
-        <!-- Modal Header -->
-        <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-          <h2 class="text-xl font-bold text-gray-800">
-            <span x-text="modalType === 'check-in' ? 'Check In' : 'Check Out'"></span>
-          </h2>
-          <button @click="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-        </div>
+        <!-- Header -->
+        <div class="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900">
+              <span x-text="modalType === 'check-in' ? 'Check In' : 'Check Out'"></span>
+            </h2>
 
-        <!-- Modal Content -->
-        <div class="p-6 space-y-4">
-
-          <!-- Time Display -->
-          <div class="text-center bg-gray-50 p-4 rounded-lg">
-            <p class="text-3xl font-bold text-gray-800" x-text="currentTime"></p>
-            <p class="text-sm text-gray-600" x-text="currentDate"></p>
+            <p class="text-xs text-slate-400 mt-0.5" x-text="currentDate"></p>
           </div>
 
-          <!-- Location Info -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-700 font-semibold">Latitude:</span>
-              <span class="text-gray-900 font-mono" x-text="latitude ? latitude.toFixed(6) : 'Mengambil...'"></span>
+          <button @click="closeModal()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="px-5 py-4 space-y-4">
+
+          <!-- Clock -->
+          <div class="text-center py-2">
+            <p class="text-4xl font-light text-slate-900 tracking-tight tabular-nums" x-text="currentTime"></p>
+          </div>
+
+          <!-- Location -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2 text-sm font-medium text-slate-600">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+
+                <span>Location</span>
+              </div>
+
+              <button @click="refreshLocation()" :disabled="locationLoading"
+                class="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 disabled:opacity-40 transition-colors font-medium">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" :class="locationLoading ? 'animate-spin' : ''"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+
+                Refresh
+              </button>
             </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-700 font-semibold">Longitude:</span>
-              <span class="text-gray-900 font-mono" x-text="longitude ? longitude.toFixed(6) : 'Mengambil...'"></span>
-            </div>
-            <button @click="refreshLocation()" :disabled="locationLoading"
-              class="w-full mt-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded transition">
-              <span x-show="!locationLoading">🔄 Refresh Lokasi</span>
-              <span x-show="locationLoading">Mengambil lokasi...</span>
-            </button>
+
+            <template x-if="latitude && longitude">
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">
+                    Latitude
+                  </span>
+
+                  <p class="font-mono text-slate-700 mt-1" x-text="latitude ? latitude.toFixed(6) : '-'">
+                  </p>
+                </div>
+
+                <div>
+                  <span class="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">
+                    Longitude
+                  </span>
+
+                  <p class="font-mono text-slate-700 mt-1" x-text="longitude ? longitude.toFixed(6) : '-'">
+                  </p>
+                </div>
+              </div>
+            </template>
+
+            <template x-if="!latitude || !longitude">
+              <p class="text-xs text-slate-400">
+                <span x-show="locationLoading">Detecting location...</span>
+                <span x-show="!locationLoading">Location unavailable</span>
+              </p>
+            </template>
           </div>
 
           <!-- Map -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Peta Lokasi</label>
-            <div :id="'map-' + modalType" class="w-full h-64 rounded-lg border border-gray-300"></div>
+            <div :id="'map-' + modalType" class="w-full h-52 rounded-xl border border-slate-200"></div>
           </div>
 
-          <!-- Camera Section -->
+          <!-- Camera -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Ambil Foto Selfie</label>
+            <p class="text-sm font-medium text-slate-700 mb-2.5">Selfie Photo</p>
 
             <template x-if="!photoPreview">
-              <div class="space-y-3">
-                <video x-ref="modalVideo" autoplay playsinline class="w-full rounded-lg bg-black"></video>
+              <div class="space-y-2.5">
+                <div class="relative bg-slate-900 rounded-xl overflow-hidden aspect-video">
+                  <video x-ref="modalVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                </div>
+
                 <button @click="capturePhoto()"
-                  class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition">
-                  📷 Ambil Foto
+                  class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium transition-colors">
+
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 9a2 2 0 012-2h1l1-2h10l1 2h1a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 13a3 3 0 100-6 3 3 0 000 6z" />
+                  </svg>
+
+                  Capture Photo
                 </button>
               </div>
             </template>
 
             <template x-if="photoPreview">
-              <div class="space-y-3">
-                <img :src="photoPreview" class="w-full rounded-lg" />
+              <div class="space-y-2.5">
+                <div class="rounded-xl overflow-hidden aspect-video">
+                  <img :src="photoPreview" class="w-full h-full object-cover" />
+                </div>
+
                 <button @click="retakePhoto()"
-                  class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg transition">
-                  🔄 Ambil Ulang
+                  class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors">
+
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+
+                  Retake
                 </button>
               </div>
             </template>
+
+            <canvas x-ref="modalCanvas" class="hidden"></canvas>
           </div>
-
-          <canvas x-ref="modalCanvas" class="hidden"></canvas>
-
         </div>
 
-        <!-- Modal Footer -->
-        <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4 space-y-2">
+        <!-- Footer -->
+        <div class="sticky bottom-0 bg-white border-t border-slate-100 px-5 py-4 space-y-2">
+
           <button @click="submit()" :disabled="!photo || !latitude || !longitude || submitting"
-            class="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-lg transition">
-            <span x-show="!submitting">✓ Konfirmasi <span
-                x-text="modalType === 'check-in' ? 'Check In' : 'Check Out'"></span></span>
-            <span x-show="submitting">Sedang memproses...</span>
+            :class="modalType === 'check-in'
+                ?
+                'bg-emerald-500 hover:bg-emerald-600 shadow-sm shadow-emerald-100' :
+                'bg-rose-500 hover:bg-rose-600 shadow-sm shadow-rose-100'"
+            class="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+
+            <span x-show="!submitting">
+              Confirm
+              <span x-text="modalType === 'check-in' ? 'Check In' : 'Check Out'"></span>
+            </span>
+
+            <span x-show="submitting">Processing...</span>
           </button>
+
           <button @click="closeModal()"
-            class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition">
-            Batal
+            class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 transition-colors">
+            Cancel
           </button>
         </div>
-
       </div>
     </div>
-    <!-- ==================== END MODAL ========================= -->
-
   </div>
 
   <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}"></script>
@@ -525,4 +741,5 @@
       }
     }
   </script>
+
 </x-app-layout>
