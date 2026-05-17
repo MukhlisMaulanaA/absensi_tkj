@@ -17,62 +17,63 @@ use Filament\Tables\Table;
 
 class OvertimeRequestsTable
 {
-    public static function configure(Table $table): Table
-    {
-        return $table
-            ->columns([
-                TextColumn::make('user_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('start_time')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('end_time')
-                    ->dateTime()
-                    ->sortable(),
-                BadgeColumn::make('overtime_days')
-                    ->label('Hari Lembur')
-                    ->color('info')
-                    ->formatStateUsing(fn (OvertimeRequest $record) => $record->getOvertimeDaysLabel())
-                    ->sortable(),
-                TextColumn::make('status')
-                    ->badge(),
-                ImageColumn::make('image')
-                    ->label('Gambar')
-                    ->disk('public')
-                    ->circular()
-                    ->url(fn ($record) => !empty($record->image) ? asset('storage/' . $record->image) : null)
-                    ->openUrlInNewTab()
-                    ->toggleable(),
-                TextColumn::make('approved_by')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                TrashedFilter::make(),
-            ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                ]),
-            ]);
-    }
+  public static function configure(Table $table): Table
+  {
+    return $table
+      ->columns([
+        TextColumn::make('user_id')
+          ->numeric()
+          ->sortable(),
+        TextColumn::make('start_time')
+          ->dateTime()
+          ->sortable(),
+        TextColumn::make('end_time')
+          ->dateTime()
+          ->sortable(),
+        BadgeColumn::make('overtime_days')
+          ->label('Hari Lembur')
+          ->color('info')
+          ->formatStateUsing(fn(OvertimeRequest $record) => $record->getOvertimeDaysLabel())
+          ->sortable(),
+        TextColumn::make('status')
+          ->badge(),
+        ImageColumn::make('image')
+          ->label('Lampiran Gambar')
+          ->disk('public')
+          // ->multiple() // <--- WAJIB DITAMBAHKAN agar Filament tahu ini adalah array gambar
+          ->circular() // Opsional: membuat preview gambar jadi bulat rapi
+          ->stacked()  // Opsional: membuat tumpukan gambar yang estetik menyamping
+          ->limit(3),   // Opsional: batasi hanya 3 gambar yang muncul di tabel jika terlalu banyak
+          // ->limitedRemainingImagesPopover(), // Opsional: sisa gambar bisa dilihat saat di-hover/klik
+        TextColumn::make('approved_by')
+          ->numeric()
+          ->sortable(),
+        TextColumn::make('created_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('updated_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('deleted_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+      ])
+      ->filters([
+        TrashedFilter::make(),
+      ])
+      ->recordActions([
+        ViewAction::make(),
+        EditAction::make(),
+      ])
+      ->toolbarActions([
+        BulkActionGroup::make([
+          DeleteBulkAction::make(),
+          ForceDeleteBulkAction::make(),
+          RestoreBulkAction::make(),
+        ]),
+      ]);
+  }
 }

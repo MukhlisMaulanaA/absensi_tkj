@@ -50,10 +50,18 @@ class OvertimeRequestController extends Controller
       'overtime_days' => $validated['overtime_days'] ?? OvertimeCalculationService::calculateOvertimeDays($startTime, $endTime),
     ];
 
-    // Handle image upload
-    if ($request->hasFile('image')) {
-      $imagePath = $request->file('image')->store('overtime-requests', 'public');
-      $data['image'] = $imagePath;
+    if ($request->hasFile('images')) {
+      $imagePaths = []; // Siapkan array kosong untuk menampung lokasi file
+
+      // Looping setiap file gambar yang diunggah
+      foreach ($request->file('images') as $file) {
+        // Simpan file ke storage dan masukkan path-nya ke dalam array
+        $path = $file->store('overtime-requests', 'public');
+        $imagePaths[] = $path;
+      }
+
+      // Masukkan array path ke dalam data yang akan disimpan ke database
+      $data['image'] = $imagePaths;
     }
 
     $overtime = OvertimeRequest::create($data);

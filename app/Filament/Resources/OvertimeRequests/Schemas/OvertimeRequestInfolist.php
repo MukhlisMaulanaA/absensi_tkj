@@ -33,10 +33,11 @@ class OvertimeRequestInfolist
         ImageEntry::make('image')
           ->label('Lampiran Gambar')
           ->disk('public')
-          ->url(fn($record) => !empty($record->image) ? asset('storage/' . $record->image) : null)
+          // Hapus ->url(...) karena Filament otomatis tahu cara mengurai array gambar
           ->openUrlInNewTab()
           ->columnSpanFull()
-          ->visible(fn(OvertimeRequest $record): bool => !empty($record->image)),
+          // Mengubah validasi visibilitas agar aman membaca array
+          ->visible(fn(OvertimeRequest $record): bool => is_array($record->image) && count($record->image) > 0),
         TextEntry::make('status')
           ->badge(),
         TextEntry::make('approved_by')

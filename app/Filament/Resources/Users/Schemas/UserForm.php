@@ -13,37 +13,40 @@ use Illuminate\Support\Facades\Hash;
 
 class UserForm
 {
-    public static function configure(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('username')
-                    ->required(),
-                TextInput::make('email')
-                    ->label('Email address')
-                    ->email()
-                    ->required(),
-                TextInput::make('jabatan'),
-                DateTimePicker::make('email_verified_at'),
-                TextInput::make('password')
-                    ->password()
-                    ->default('tkj@123456')
-                    ->hiddenOn('edit')
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state)),
-                TextInput::make('role')
-                    ->required()
-                    ->default('employee'),
-                Select::make('location_id')
-                    ->label('Assign Location')
-                    ->options(Location::pluck('name', 'id'))
-                    ->searchable(),
-                Select::make('schedule_id')
-                    ->label('Schedule')
-                    ->options(Schedule::pluck('name', 'id'))
-                    ->searchable(),
-                TextInput::make('device_id'),
-            ]);
-    }
+  public static function configure(Schema $schema): Schema
+  {
+    return $schema
+      ->components([
+        TextInput::make('name')
+          ->required(),
+        TextInput::make('username')
+          ->required(),
+        TextInput::make('email')
+          ->label('Email address')
+          ->email()
+          ->required(),
+        TextInput::make('jabatan'),
+        DateTimePicker::make('email_verified_at')
+          ->default(now()),
+        TextInput::make('password')
+          ->readOnly()
+          ->password()
+          ->default('tkj@123456')
+          ->hiddenOn('edit')
+          ->dehydrateStateUsing(fn($state) => Hash::make($state)),
+        TextInput::make('role')
+          ->required()
+          ->default('employee'),
+        Select::make('location_id')
+          ->label('Assign Location')
+          ->options(Location::pluck('name', 'id'))
+          ->searchable(),
+        Select::make('schedule_id')
+          ->label('Schedule')
+          ->default('1')
+          ->options(Schedule::pluck('name', 'id'))
+          ->searchable(),
+        TextInput::make('device_id'),
+      ]);
+  }
 }

@@ -147,7 +147,8 @@
                       <tr class="border-b border-gray-200 last:border-0">
                         <td class="text-gray-600 py-2">Jam Selesai</td>
                         <td class="text-right font-mono font-semibold text-gray-800">
-                          <span id="calcEndDisplay">20:00</span> <span id="calcNextDayTag" class="hidden text-xs bg-amber-100 text-amber-600 rounded px-2 py-0.5">+</span>
+                          <span id="calcEndDisplay">20:00</span> <span id="calcNextDayTag"
+                            class="hidden text-xs bg-amber-100 text-amber-600 rounded px-2 py-0.5">+</span>
                         </td>
                       </tr>
                       <tr class="border-b border-gray-200 last:border-0">
@@ -159,7 +160,8 @@
                       <tr class="bg-blue-50 border-t border-blue-200">
                         <td class="text-blue-900 font-semibold py-2">Hari Lembur</td>
                         <td class="text-right">
-                          <span id="calcOvertimeDays" class="inline-flex items-center gap-1 bg-blue-600 text-white font-bold px-3 py-1 rounded-lg text-sm">
+                          <span id="calcOvertimeDays"
+                            class="inline-flex items-center gap-1 bg-blue-600 text-white font-bold px-3 py-1 rounded-lg text-sm">
                             <span class="text-lg">→</span> 1 Hari
                           </span>
                         </td>
@@ -187,13 +189,16 @@
                   placeholder="..." required>{{ old('description') }}</textarea>
               </div>
 
-              {{-- Image Upload --}}
+              {{-- Image Upload (Multiple) --}}
               <div>
                 <label class="block text-sm font-medium text-gray-600 mb-2">
-                  Lampirkan Gambar<span class="text-red-400 font-normal"> (wajib dilampirkan)</span>
+                  Lampirkan Gambar<span class="text-red-400 font-normal"> (wajib dilampirkan, maks 5 gambar)</span>
                 </label>
                 <div class="relative">
-                  <input type="file" name="image" id="imageInput" accept="image/*" class="hidden" required />
+                  <!-- 1. Menambahkan 'multiple' dan mengubah name menjadi format array [] -->
+                  <input type="file" name="images[]" id="imageInput" accept="image/*" class="hidden" multiple
+                    required />
+
                   <label for="imageInput"
                     class="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors">
                     <div class="text-center">
@@ -202,12 +207,19 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                       </svg>
                       <p id="imageLabel" class="text-sm text-gray-600">
-                        <span class="font-medium text-blue-600">Klik untuk memilih</span> atau seret gambar di sini
+                        <span class="font-medium text-blue-600">Klik untuk memilih</span> atau seret hingga 5 gambar di
+                        sini
                       </p>
-                      <p id="imageName" class="text-xs text-gray-400 mt-1"></p>
+                      <!-- Tempat menampilkan jumlah file terpilih -->
+                      <p id="imageCount" class="text-xs text-gray-400 mt-1"></p>
                     </div>
                   </label>
-                  <img id="imagePreview" src="" alt="Preview" class="hidden mt-3 max-h-40 rounded-lg" />
+
+                  <!-- 2. Mengubah single img menjadi Grid Container untuk banyak preview gambar -->
+                  <div id="imagePreviewContainer"
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-3 hidden">
+                    <!-- Preview gambar akan di-inject lewat JavaScript di sini -->
+                  </div>
                 </div>
               </div>
 
@@ -320,32 +332,32 @@
 
     function updateOvertimeCalculation() {
       const pad2 = n => String(n).padStart(2, '0');
-      
+
       // Display start time
       document.getElementById('calcStartDisplay').textContent = `${pad2(state.startH)}:${pad2(state.startM)}`;
-      
+
       // Display end time
       const endHourDisplay = state.endH % 24;
       const isNextDay = state.endH >= 24;
       document.getElementById('calcEndDisplay').textContent = `${pad2(endHourDisplay)}:${pad2(state.endM)}`;
-      
+
       const nextDayTag = document.getElementById('calcNextDayTag');
       isNextDay ? nextDayTag.classList.remove('hidden') : nextDayTag.classList.add('hidden');
-      
+
       // Calculate and display duration
       const startMins = state.startH * 60 + state.startM;
       const endMins = state.endH * 60 + state.endM;
       const diff = endMins - startMins;
-      
+
       if (diff > 0) {
         const h = Math.floor(diff / 60);
         const m = diff % 60;
-        document.getElementById('calcDurationDisplay').textContent = 
+        document.getElementById('calcDurationDisplay').textContent =
           (h ? h + ' jam ' : '') + (m ? m + ' menit' : '');
       } else {
         document.getElementById('calcDurationDisplay').textContent = 'Tidak valid';
       }
-      
+
       // Calculate overtime days based on company regulations
       const overtimeDays = calculateOvertimeDays();
       updateOvertimeDaysDisplay(overtimeDays);
@@ -357,19 +369,19 @@
       // 2. If continues until 02:00 (early hours of following day) = 2 days
       // 3. If continues until 06:00 (morning of following day) = 3 days
       // 4. Pattern continues for additional periods
-      
+
       const startMins = state.startH * 60 + state.startM;
       const endMins = state.endH * 60 + state.endM;
       const diff = endMins - startMins;
-      
+
       if (diff <= 0) {
         return 1;
       }
-      
+
       // If spans to next day (endH >= 24)
       if (state.endH >= 24) {
         const endHourNextDay = state.endH % 24;
-        
+
         // Check thresholds based on time on the next day
         if (endHourNextDay >= 6) {
           // Reaches 06:00 or beyond = 3 days
@@ -382,7 +394,7 @@
           return 1;
         }
       }
-      
+
       // Same day only = 1 day
       return 1;
     }
@@ -390,10 +402,10 @@
     function updateOvertimeDaysDisplay(days) {
       const daysLabel = ['', '1 Hari', '2 Hari', '3 Hari', '4 Hari', '5 Hari'];
       const label = daysLabel[Math.min(days, 5)] || days + ' Hari';
-      
+
       const badge = document.getElementById('calcOvertimeDays');
       badge.innerHTML = `<span class="text-lg">→</span> ${label}`;
-      
+
       // Add visual emphasis for multi-day overtime
       if (days >= 2) {
         badge.classList.add('ring-2', 'ring-orange-300');
@@ -585,6 +597,58 @@
       };
       reader.readAsDataURL(file);
     }
+
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+      const files = event.target.files;
+      const container = document.getElementById('imagePreviewContainer');
+      const countLabel = document.getElementById('imageCount');
+
+      // Reset/bersihkan preview sebelumnya
+      container.innerHTML = '';
+
+      if (files.length === 0) {
+        container.classList.add('hidden');
+        countLabel.textContent = '';
+        return;
+      }
+
+      // Validasi: Batasi maksimal 5 gambar
+      if (files.length > 5) {
+        alert('Maksimal hanya boleh mengunggah 5 gambar!');
+        this.value = ''; // Reset input file jika melebihi batas
+        container.classList.add('hidden');
+        countLabel.textContent = '';
+        return;
+      }
+
+      // Tampilkan container preview dan teks jumlah file
+      container.classList.remove('hidden');
+      countLabel.textContent = `${files.length} gambar dipilih`;
+
+      // Looping setiap file yang dipilih untuk dijadikan preview
+      Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+
+          reader.onload = function(e) {
+            // Membuat elemen pembungkus gambar (kotak persegi/aspect-square)
+            const wrapper = document.createElement('div');
+            wrapper.className =
+              'relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100';
+
+            // Membuat tag img
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'w-full h-full object-cover';
+
+            wrapper.appendChild(img);
+            container.appendChild(wrapper);
+          }
+
+          reader.readAsDataURL(file);
+        }
+      });
+    });
   </script>
 
 </x-app-layout>

@@ -28,6 +28,7 @@ class OvertimeRequest extends Model
   protected $casts = [
     'start_time' => 'datetime',
     'end_time' => 'datetime',
+    'image' => 'array',
   ];
   /*
   |--------------------------------------------------------------------------
@@ -105,7 +106,7 @@ class OvertimeRequest extends Model
       return $days;
     }
 
-    return 1;
+    return 1; 
   }
 
   /**
