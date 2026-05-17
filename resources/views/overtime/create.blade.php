@@ -52,7 +52,7 @@
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Preset Cepat</p>
                 <div class="flex flex-wrap gap-2">
-                  @foreach ([['16:00', '18:00', false], ['16:00', '19:00', false], ['16:00', '20:00', false], ['16:00', '21:00', false], ['16:00', '22:00', false], ['16:00', '23:00', false], ['16:00', '23:59', false], ['20:00', '23:00', false], ['22:00', '01:00', true], ['22:00', '02:00', true]] as [$s, $e, $nextDay])
+                  @foreach ([['16:00', '18:00', false], ['16:00', '19:00', false], ['16:00', '20:00', false], ['16:00', '21:00', false], ['16:00', '22:00', false], ['16:00', '23:00', false], ['16:00', '23:59', false], ['16:00', '02:00', true], ['16:00', '04:00', true], ['16:00', '06:00', true]] as [$s, $e, $nextDay])
                     <button type="button"
                       onclick="setPreset('{{ $s }}','{{ $e }}',{{ $nextDay ? 'true' : 'false' }})"
                       class="preset-btn px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-xs font-mono font-medium text-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-colors">
@@ -96,9 +96,9 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-600 mb-2">
                       Selesai
-                      <span id="nextDayBadge"
+                      {{-- <span id="nextDayBadge"
                         class="hidden ml-1 text-[10px] font-semibold bg-amber-100 text-amber-600 border border-amber-200 rounded px-1.5 py-0.5">+1
-                        hari</span>
+                        hari</span> --}}
                     </label>
                     <div
                       class="bg-gray-50 border-2 border-gray-200 rounded-xl p-3 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors">
@@ -129,6 +129,54 @@
               <div class="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center text-sm">
                 <span class="text-gray-500 font-medium">⏱ Durasi lembur</span>
                 <span id="durationDisplay" class="font-mono font-semibold text-gray-800">—</span>
+              </div>
+
+              {{-- Overtime Calculation Result --}}
+              <div class="bg-white border border-blue-200 rounded-xl overflow-hidden">
+                <div class="bg-blue-50 px-4 py-2 border-b border-blue-200">
+                  <h4 class="text-sm font-semibold text-blue-900">📋 Rincian Perhitungan Lembur</h4>
+                </div>
+                <div class="p-4">
+                  <table class="w-full text-sm">
+                    <tbody>
+                      <tr class="border-b border-gray-200 last:border-0">
+                        <td class="text-gray-600 py-2">Jam Mulai</td>
+                        <td class="text-right font-mono font-semibold text-gray-800">
+                          <span id="calcStartDisplay">16:00</span>
+                        </td>
+                      </tr>
+                      <tr class="border-b border-gray-200 last:border-0">
+                        <td class="text-gray-600 py-2">Jam Selesai</td>
+                        <td class="text-right font-mono font-semibold text-gray-800">
+                          <span id="calcEndDisplay">20:00</span> 
+                          {{-- <span id="calcNextDayTag" class="hidden text-xs bg-amber-100 text-amber-600 rounded px-2 py-0.5">(+1 hari)</span> --}}
+                        </td>
+                      </tr>
+                      <tr class="border-b border-gray-200 last:border-0">
+                        <td class="text-gray-600 py-2">Durasi</td>
+                        <td class="text-right font-mono font-semibold text-gray-800">
+                          <span id="calcDurationDisplay">4 jam</span>
+                        </td>
+                      </tr>
+                      <tr class="bg-blue-50 border-t border-blue-200">
+                        <td class="text-blue-900 font-semibold py-2">Hari Lembur</td>
+                        <td class="text-right">
+                          <span id="calcOvertimeDays" class="inline-flex items-center gap-1 bg-blue-600 text-white font-bold px-3 py-1 rounded-lg text-sm">
+                            <span class="text-lg">→</span> 1 Hari
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p class="text-xs text-amber-800 font-medium">
+                      <span class="font-semibold">⚠️ Catatan Perhitungan:</span><br>
+                      • Mulai dari 16:00 = 1 hari<br>
+                      • Sampai 02:00 dini hari = 2 hari<br>
+                      • Sampai 06:00 pagi = 3 hari
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {{-- Description --}}
@@ -267,6 +315,93 @@
         el.textContent = (h ? h + ' jam ' : '') + (m ? m + ' menit' : '');
         el.className = 'font-mono font-semibold text-gray-800';
       }
+
+      // Update overtime calculation display
+      updateOvertimeCalculation();
+    }
+
+    function updateOvertimeCalculation() {
+      const pad2 = n => String(n).padStart(2, '0');
+      
+      // Display start time
+      document.getElementById('calcStartDisplay').textContent = `${pad2(state.startH)}:${pad2(state.startM)}`;
+      
+      // Display end time
+      const endHourDisplay = state.endH % 24;
+      const isNextDay = state.endH >= 24;
+      document.getElementById('calcEndDisplay').textContent = `${pad2(endHourDisplay)}:${pad2(state.endM)}`;
+      
+      const nextDayTag = document.getElementById('calcNextDayTag');
+      isNextDay ? nextDayTag.classList.remove('hidden') : nextDayTag.classList.add('hidden');
+      
+      // Calculate and display duration
+      const startMins = state.startH * 60 + state.startM;
+      const endMins = state.endH * 60 + state.endM;
+      const diff = endMins - startMins;
+      
+      if (diff > 0) {
+        const h = Math.floor(diff / 60);
+        const m = diff % 60;
+        document.getElementById('calcDurationDisplay').textContent = 
+          (h ? h + ' jam ' : '') + (m ? m + ' menit' : '');
+      } else {
+        document.getElementById('calcDurationDisplay').textContent = 'Tidak valid';
+      }
+      
+      // Calculate overtime days based on company regulations
+      const overtimeDays = calculateOvertimeDays();
+      updateOvertimeDaysDisplay(overtimeDays);
+    }
+
+    function calculateOvertimeDays() {
+      // Company Regulation:
+      // 1. Overtime starts from 16:00
+      // 2. If continues until 02:00 (early hours of following day) = 2 days
+      // 3. If continues until 06:00 (morning of following day) = 3 days
+      // 4. Pattern continues for additional periods
+      
+      const startMins = state.startH * 60 + state.startM;
+      const endMins = state.endH * 60 + state.endM;
+      const diff = endMins - startMins;
+      
+      if (diff <= 0) {
+        return 1;
+      }
+      
+      // If spans to next day (endH >= 24)
+      if (state.endH >= 24) {
+        const endHourNextDay = state.endH % 24;
+        
+        // Check thresholds based on time on the next day
+        if (endHourNextDay >= 6) {
+          // Reaches 06:00 or beyond = 3 days
+          return 3;
+        } else if (endHourNextDay >= 2) {
+          // Reaches 02:00 to 05:59 = 3 days
+          return 2;
+        } else {
+          // 00:00 to 01:59 (early hours) = 2 days
+          return 1;
+        }
+      }
+      
+      // Same day only = 1 day
+      return 1;
+    }
+
+    function updateOvertimeDaysDisplay(days) {
+      const daysLabel = ['', '1 Hari', '2 Hari', '3 Hari', '4 Hari', '5 Hari'];
+      const label = daysLabel[Math.min(days, 5)] || days + ' Hari';
+      
+      const badge = document.getElementById('calcOvertimeDays');
+      badge.innerHTML = `<span class="text-lg">→</span> ${label}`;
+      
+      // Add visual emphasis for multi-day overtime
+      if (days >= 2) {
+        badge.classList.add('ring-2', 'ring-orange-300');
+      } else {
+        badge.classList.remove('ring-2', 'ring-orange-300');
+      }
     }
 
     document.getElementById('overtimeForm').addEventListener('submit', function(e) {
@@ -297,6 +432,13 @@
       const endHourReal = state.endH % 24;
       document.getElementById('end_time_input').value =
         `${endDateStr} ${pad2(endHourReal)}:${pad2(state.endM)}:00`;
+
+      // Add overtime_days to form data
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'overtime_days';
+      input.value = calculateOvertimeDays();
+      this.appendChild(input);
 
       // Submit form via AJAX
       submitOvertimeForm();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
+use App\Services\OvertimeCalculationService;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -34,14 +35,19 @@ class OvertimeRequestController extends Controller
       'end_time' => 'required|date|after:start_time',
       'description' => 'nullable|string|max:1000',
       'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+      'overtime_days' => 'nullable|integer|min:1',
     ]);
+
+    $startTime = Carbon::parse($validated['start_time']);
+    $endTime = Carbon::parse($validated['end_time']);
 
     $data = [
       'user_id' => Auth::id(),
-      'start_time' => Carbon::parse($validated['start_time']),
-      'end_time' => Carbon::parse($validated['end_time']),
+      'start_time' => $startTime,
+      'end_time' => $endTime,
       'description' => $validated['description'] ?? null,
       'status' => 'pending',
+      'overtime_days' => $validated['overtime_days'] ?? OvertimeCalculationService::calculateOvertimeDays($startTime, $endTime),
     ];
 
     // Handle image upload

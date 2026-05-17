@@ -7,6 +7,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Schema;
 
 class OvertimeRequestForm
@@ -39,6 +40,11 @@ class OvertimeRequestForm
                     ->required(),
                 TextInput::make('approved_by')
                     ->numeric(),
+                TextInput::make('overtime_days')
+                    ->label('Hari Lembur')
+                    ->numeric()
+                    ->disabled()
+                    ->helperText('Hari lembur dihitung otomatis berdasarkan waktu mulai dan berakhir'),
             ]);
     }
 }

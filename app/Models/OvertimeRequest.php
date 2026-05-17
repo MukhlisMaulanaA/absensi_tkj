@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
 use \Illuminate\Notifications\Notifiable;
+use App\Services\OvertimeCalculationService;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class OvertimeRequest extends Model
@@ -21,6 +22,7 @@ class OvertimeRequest extends Model
     'image',
     'status',
     'approved_by',
+    'overtime_days',
   ];
 
   protected $casts = [
@@ -77,5 +79,52 @@ class OvertimeRequest extends Model
   public function isRejected(): bool
   {
     return $this->status === 'rejected';
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | OVERTIME CALCULATION
+  |--------------------------------------------------------------------------
+  */
+
+  /**
+   * Calculate and update overtime_days if not already set
+   */
+  public function calculateOvertimeDays(): int
+  {
+    if ($this->start_time && $this->end_time) {
+      $days = OvertimeCalculationService::calculateOvertimeDays(
+        Carbon::parse($this->start_time),
+        Carbon::parse($this->end_time)
+      );
+      
+      if (!$this->overtime_days) {
+        $this->overtime_days = $days;
+      }
+      
+      return $days;
+    }
+
+    return 1;
+  }
+
+  /**
+   * Get formatted overtime days description
+   */
+  public function getOvertimeDaysLabel(): string
+  {
+    $days = $this->overtime_days ?? $this->calculateOvertimeDays();
+    return OvertimeCalculationService::getOvertimeDayDescription($days);
+  }
+
+  /**
+   * Get complete overtime calculation details
+   */
+  public function getCalculationDetails(): array
+  {
+    return OvertimeCalculationService::getOvertimeCalculationDetails(
+      Carbon::parse($this->start_time),
+      Carbon::parse($this->end_time)
+    );
   }
 }

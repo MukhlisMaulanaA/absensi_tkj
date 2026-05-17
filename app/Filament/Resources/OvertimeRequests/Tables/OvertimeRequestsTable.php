@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\OvertimeRequests\Tables;
 
+use App\Models\OvertimeRequest;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -10,6 +11,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -27,6 +29,11 @@ class OvertimeRequestsTable
                     ->sortable(),
                 TextColumn::make('end_time')
                     ->dateTime()
+                    ->sortable(),
+                BadgeColumn::make('overtime_days')
+                    ->label('Hari Lembur')
+                    ->color('info')
+                    ->formatStateUsing(fn (OvertimeRequest $record) => $record->getOvertimeDaysLabel())
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge(),
