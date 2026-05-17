@@ -96,9 +96,8 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-600 mb-2">
                       Selesai
-                      {{-- <span id="nextDayBadge"
-                        class="hidden ml-1 text-[10px] font-semibold bg-amber-100 text-amber-600 border border-amber-200 rounded px-1.5 py-0.5">+1
-                        hari</span> --}}
+                      <span id="nextDayBadge"
+                        class="hidden ml-1 text-[10px] font-semibold bg-amber-100 text-amber-600 border border-amber-200 rounded px-1.5 py-0.5">+</span>
                     </label>
                     <div
                       class="bg-gray-50 border-2 border-gray-200 rounded-xl p-3 focus-within:border-blue-500 focus-within:bg-blue-50 transition-colors">
@@ -148,8 +147,7 @@
                       <tr class="border-b border-gray-200 last:border-0">
                         <td class="text-gray-600 py-2">Jam Selesai</td>
                         <td class="text-right font-mono font-semibold text-gray-800">
-                          <span id="calcEndDisplay">20:00</span> 
-                          {{-- <span id="calcNextDayTag" class="hidden text-xs bg-amber-100 text-amber-600 rounded px-2 py-0.5">(+1 hari)</span> --}}
+                          <span id="calcEndDisplay">20:00</span> <span id="calcNextDayTag" class="hidden text-xs bg-amber-100 text-amber-600 rounded px-2 py-0.5">+</span>
                         </td>
                       </tr>
                       <tr class="border-b border-gray-200 last:border-0">
