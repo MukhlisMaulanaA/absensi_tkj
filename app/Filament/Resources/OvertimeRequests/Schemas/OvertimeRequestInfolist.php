@@ -3,10 +3,11 @@
 namespace App\Filament\Resources\OvertimeRequests\Schemas;
 
 use App\Models\OvertimeRequest;
+use App\Models\User;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Grid; // <-- Menggunakan Grid terpadu milik Filament v5
+use Filament\Schemas\Schema;
 
 class OvertimeRequestInfolist
 {
@@ -16,8 +17,8 @@ class OvertimeRequestInfolist
       ->components([
         Grid::make(2) // Grid dari Filament\Schemas\Components
           ->schema([
-            TextEntry::make('user_id')
-              ->numeric(),
+            TextEntry::make('user.name')
+              ->label('Nama Karyawan'),
             TextEntry::make('overtime_days')
               ->label('Hari Lembur')
               ->badge()
@@ -39,9 +40,32 @@ class OvertimeRequestInfolist
           // Mengubah validasi visibilitas agar aman membaca array
           ->visible(fn(OvertimeRequest $record): bool => is_array($record->image) && count($record->image) > 0),
         TextEntry::make('status')
-          ->badge(),
+          ->label('Status')
+          ->badge()
+          ->color(function ($state) {
+            // Ubah state menjadi huruf kecil semua agar tidak case-sensitive saat dicocokkan
+            return match (strtolower($state)) {
+              'approved', 'disetujui' => 'success', // Hijau
+              'pending', 'menunggu' => 'warning', // Kuning
+              'rejected', 'ditolak' => 'danger',  // Merah
+              default => 'gray',    // Abu-abu
+            };
+          }),
         TextEntry::make('approved_by')
-          ->numeric()
+          ->label('Approved By')
+          ->getStateUsing(function ($record) {
+            // Cek apakah kolom approved_by kosong
+            if (!$record->approved_by) {
+              return '-';
+            }
+
+            // Cari data User berdasarkan ID yang ada di kolom approved_by
+            $approver = User::find($record->approved_by);
+
+            // Jika user ditemukan tampilkan namanya, jika tidak kembalikan '-'
+            return $approver ? $approver->name : '-';
+          })
+          ->color('success')
           ->placeholder('-'),
         TextEntry::make('created_at')
           ->dateTime()

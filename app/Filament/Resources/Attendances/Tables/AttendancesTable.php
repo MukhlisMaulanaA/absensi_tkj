@@ -16,96 +16,119 @@ use Filament\Tables\Table;
 
 class AttendancesTable
 {
-    public static function configure(Table $table): Table
-    {
-        return $table
-            ->columns([
-                TextColumn::make('user.name')
-                    ->label('Employee')
-                    ->searchable()
-                    ->sortable()
-                    ->wrap(),
-                TextColumn::make('location.name')
-                    ->label('Location')
-                    ->searchable()
-                    ->sortable(),
-                BadgeColumn::make('status')
-                    ->label('Status')
-                    ->formatStateUsing(function ($state) {
-                        $statuses = [
-                            'on_time' => 'On Time',
-                            'late' => 'Late',
-                            'absent' => 'Absent',
-                        ];
-                        return $statuses[$state] ?? $state;
-                    })
-                    ->colors([
-                        'success' => 'on_time',
-                        'warning' => 'late',
-                        'danger' => 'absent',
-                    ])
-                    ->getStateUsing(function ($record) {
-                        if (!$record->check_in_time) {
-                            return 'absent';
-                        }
-                        return $record->late_minutes > 0 ? 'late' : 'on_time';
-                    }),
-                TextColumn::make('check_in_time')
-                    ->label('Check-In')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->wrap(),
-                TextColumn::make('check_out_time')
-                    ->label('Check-Out')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->wrap()
-                    ->placeholder('-'),
-                TextColumn::make('working_hours')
-                    ->label('Working Hours')
-                    ->getStateUsing(function ($record) {
-                        if (!$record->check_in_time || !$record->check_out_time) {
-                            return '-';
-                        }
-                        return $record->working_hours . 'h';
-                    })
-                    ->sortable(),
-                TextColumn::make('late_minutes')
-                    ->label('Late (mins)')
-                    ->numeric()
-                    ->sortable()
-                    ->getStateUsing(function ($record) {
-                        return $record->late_minutes > 0 ? $record->late_minutes : '-';
-                    }),
-                IconColumn::make('is_within_radius')
-                    ->label('Within Radius')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle'),
-                TextColumn::make('created_at')
-                    ->label('Date')
-                    ->date('d/m/Y')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
-                TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->defaultSort('check_in_time', 'desc')
-            ->filters([
-                TrashedFilter::make(),
-            ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                ]),
-            ]);
-    }
+  public static function configure(Table $table): Table
+  {
+    return $table
+      ->columns([
+        TextColumn::make('user.name')
+          ->label('Employee')
+          ->searchable()
+          ->sortable()
+          ->wrap(),
+        TextColumn::make('location.name')
+          ->label('Location')
+          ->searchable()
+          ->sortable(),
+        BadgeColumn::make('status')
+          ->label('Status')
+          ->formatStateUsing(function ($state) {
+            $statuses = [
+              'on_time' => 'On Time',
+              'late' => 'Late',
+              'absent' => 'Absent',
+            ];
+            return $statuses[$state] ?? $state;
+          })
+          ->colors([
+            'success' => 'on_time',
+            'warning' => 'late',
+            'danger' => 'absent',
+          ])
+          ->getStateUsing(function ($record) {
+            if (!$record->check_in_time) {
+              return 'absent';
+            }
+            return $record->late_minutes > 0 ? 'late' : 'on_time';
+          }),
+        TextColumn::make('check_in_time')
+          ->label('Check-In')
+          ->dateTime('d/m/Y H:i')
+          ->sortable()
+          ->wrap(),
+        TextColumn::make('check_out_time')
+          ->label('Check-Out')
+          ->dateTime('d/m/Y H:i')
+          ->sortable()
+          ->wrap()
+          ->placeholder('-'),
+        TextColumn::make('working_hours')
+          ->label('Working Hours')
+          ->getStateUsing(function ($record) {
+            if (!$record->check_in_time || !$record->check_out_time) {
+              return '-';
+            }
+            return $record->working_hours . 'h';
+          })
+          ->sortable(),
+        TextColumn::make('overtime_hours')
+          ->label('Overtime Hours')
+          ->getStateUsing(function ($record) {
+            // Validasi jika relasi user atau check_in_time kosong
+            if (!$record->user || !$record->check_in_time) {
+              return '-';
+            }
+
+            $attendanceDate = $record->check_in_time->toDateString();
+
+            // Cari request lembur yang disetujui sesuai tanggal absensi
+            $overtimeRequest = \App\Models\OvertimeRequest::where('user_id', $record->user_id)
+              // ->where('status', 'approved')
+              ->whereDate('start_time', '<=', $attendanceDate)
+              ->whereDate('end_time', '>=', $attendanceDate)
+              ->first();
+
+            if (!$overtimeRequest) {
+              return '-';
+            }
+
+            return $overtimeRequest->duration_hours . ' hours';
+          }),
+        TextColumn::make('late_minutes')
+          ->label('Late (mins)')
+          ->numeric()
+          ->sortable()
+          ->getStateUsing(function ($record) {
+            return $record->late_minutes > 0 ? $record->late_minutes : '-';
+          }),
+        IconColumn::make('is_within_radius')
+          ->label('Within Radius')
+          ->boolean()
+          ->trueIcon('heroicon-o-check-circle')
+          ->falseIcon('heroicon-o-x-circle'),
+        TextColumn::make('created_at')
+          ->label('Date')
+          ->date('d/m/Y')
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: false),
+        TextColumn::make('deleted_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+      ])
+      ->defaultSort('check_in_time', 'desc')
+      ->filters([
+        TrashedFilter::make(),
+      ])
+      ->recordActions([
+        ViewAction::make(),
+        EditAction::make(),
+      ])
+      ->toolbarActions([
+        BulkActionGroup::make([
+          DeleteBulkAction::make(),
+          ForceDeleteBulkAction::make(),
+          RestoreBulkAction::make(),
+        ]),
+      ]);
+  }
 }

@@ -4,7 +4,8 @@ namespace App\Filament\Resources\Attendances\Schemas;
 
 use App\Filament\Infolists\Components\AttendanceMapEntry;
 use App\Models\Attendance;
-// use Filament\Infolists\Components\Grid;
+use App\Models\OvertimeRequest;
+use Dom\Text;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -71,7 +72,6 @@ class AttendanceInfolist
               ->columnSpan(1),
           ]),
 
-        // Check-In Details Section
         Section::make('Check-In Details')
           ->icon('heroicon-o-arrow-down-on-square')
           ->collapsible()
@@ -132,6 +132,29 @@ class AttendanceInfolist
                 return $record->working_hours . ' hours';
               })
               ->columnSpanFull(),
+            TextEntry::make('overtime_hours')
+              ->label('Overtime Hours')
+              ->getStateUsing(function ($record) {
+                if (!$record->user || !$record->check_in_time) {
+                  return '-';
+                }
+
+                $attendanceDate = $record->check_in_time->toDateString();
+
+                $overtimeRequest = \App\Models\OvertimeRequest::where('user_id', $record->user_id)
+                  ->where('status', 'approved')
+                  ->whereDate('start_time', '<=', $attendanceDate)
+                  ->whereDate('end_time', '>=', $attendanceDate)
+                  ->first();
+
+                if (!$overtimeRequest) {
+                  return '-';
+                }
+
+                return $overtimeRequest->duration_hours . ' hours';
+              })
+              ->columnSpanFull(),
+
           ]),
 
         // Location Map Section
@@ -163,6 +186,81 @@ class AttendanceInfolist
               ->dateTime('d/m/Y H:i:s')
               ->placeholder('-')
               ->visible(fn(Attendance $record): bool => $record->trashed()),
+          ]),
+
+        Section::make('Overtime Request')
+          ->icon('heroicon-o-check-badge')
+          ->columns(3)
+          ->schema([
+            TextEntry::make('overtime_hours')
+              ->label('Overtime Hours')
+              ->getStateUsing(function ($record) {
+                if (!$record->user || !$record->check_in_time) {
+                  return '-';
+                }
+
+                $attendanceDate = $record->check_in_time->toDateString();
+
+                $overtimeRequest = OvertimeRequest::where('user_id', $record->user_id)
+                  ->whereDate('start_time', '<=', $attendanceDate)
+                  ->whereDate('end_time', '>=', $attendanceDate)
+                  ->first();
+
+                if (!$overtimeRequest) {
+                  return '-';
+                }
+
+                return $overtimeRequest->duration_hours . ' hours';
+              })
+              ->columnSpan(1),
+            TextEntry::make('status')
+              ->label('Status')
+              ->badge() // 1. Tambahkan ini untuk mengubah teks biasa menjadi bentuk badge
+              ->getStateUsing(function ($record) {
+                $overtimeRequest = OvertimeRequest::where('user_id', $record->user_id)
+                  ->first(['status']); // Mengambil kolom status saja demi performa
+          
+                if (!$overtimeRequest) {
+                  return 'No Request'; // Mengembalikan teks default jika tidak ada data
+                }
+
+                return $overtimeRequest->status;
+              })
+              ->color(function ($state) {
+                // 2. Sesuaikan value di dalam match dengan isi data di database Anda
+                return match ($state) {
+                  'approved', 'On Time' => 'success',   // Warna Hijau
+                  'pending', 'Late' => 'warning',   // Warna Kuning
+                  'rejected', 'Absent' => 'danger',    // Warna Merah
+                  default => 'gray',      // Warna Abu-abu (untuk '-' atau 'No Request')
+                };
+              }),
+
+            TextEntry::make('approved_by')
+              ->label('Approved By')
+              ->getStateUsing(function ($record) {
+                // Ambil data overtime request (disarankan pakai filter tanggal seperti kode Anda sebelumnya agar akurat)
+                $overtimeRequest = OvertimeRequest::where('user_id', $record->user_id)
+                  ->where('status', 'approved') // Pastikan statusnya memang approved
+                  ->first();
+
+                // Jika tidak ada data lembur atau belum di-approve
+                if (!$overtimeRequest || !$overtimeRequest->approved_by) {
+                  return '-';
+                }
+
+                // --- OPSI 1: Jika Anda SUDAH punya relasi di Model OvertimeRequest ---
+                // Misal di model OvertimeRequest ada: public function approver() { return $this->belongsTo(User::class, 'approved_by'); }
+                return $overtimeRequest->approver->name;
+          
+                // --- OPSI 2: Jika BELUM punya relasi (Query manual) ---
+                // $approver = User::find($overtimeRequest->approved_by);
+
+                return $approver ? $approver->name : '-';
+              })
+              ->icon('heroicon-o-check-badge') // (Opsional) Tambahkan icon agar tampilan lebih bagus
+              ->color('success')               // (Opsional) Beri warna teks
+              ->weight('bold'),
           ]),
       ]);
   }
