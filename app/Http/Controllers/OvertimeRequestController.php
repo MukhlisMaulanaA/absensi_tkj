@@ -35,7 +35,7 @@ class OvertimeRequestController extends Controller
       'end_time' => 'required|date|after:start_time',
       'description' => 'nullable|string|max:1000',
       'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-      'overtime_days' => 'nullable|integer|min:1',
+      'overtime_days' => 'nullable|integer',
     ]);
 
     $startTime = Carbon::parse($validated['start_time']);
@@ -76,5 +76,23 @@ class OvertimeRequestController extends Controller
     }
 
     return redirect()->route('dashboard')->with('status', 'Overtime request submitted.');
+  }
+
+  public function destroy(OvertimeRequest $overtime)
+  {
+    // Pastikan hanya pemilik overtime yang bisa hapus
+    if ($overtime->user_id !== Auth::id()) {
+      abort(403, 'Unauthorized action.');
+    }
+
+    // Optional:
+    // cegah hapus jika sudah approved
+    if ($overtime->status === 'approved') {
+      return back()->with('error', 'Approved overtime cannot be deleted.');
+    }
+
+    $overtime->delete();
+
+    return back()->with('success', 'Overtime request deleted successfully.');
   }
 }

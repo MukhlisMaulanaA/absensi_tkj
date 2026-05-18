@@ -8,6 +8,7 @@ use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid; // <-- Menggunakan Grid terpadu milik Filament v5
 use Filament\Schemas\Schema;
+use Carbon\Carbon;
 
 class OvertimeRequestInfolist
 {
@@ -29,6 +30,31 @@ class OvertimeRequestInfolist
           ->dateTime(),
         TextEntry::make('end_time')
           ->dateTime(),
+
+        // --- TAMBAHAN: TextEntry untuk Durasi Overtime ---
+        TextEntry::make('duration')
+          ->label('Durasi Lembur')
+          ->getStateUsing(function (OvertimeRequest $record) {
+            if (!$record->start_time || !$record->end_time) {
+              return '-';
+            }
+
+            // Menggunakan logika aturan sebelumnya
+            if ($record->overtime_days == 0) {
+              $startTime = Carbon::parse($record->start_time);
+              $endTime = Carbon::parse($record->end_time);
+
+              // Hitung selisih jam jika hari lembur bernilai 0
+              return $startTime->diffInHours($endTime) . ' jam';
+            }
+
+            // Jika hari lembur lebih dari 0, langsung ambil nilai harinya saja
+            return $record->overtime_days . ' hari';
+          })
+          ->badge()
+          ->color('success'),
+        // -------------------------------------------------
+
         TextEntry::make('description')
           ->columnSpanFull(),
         ImageEntry::make('image')

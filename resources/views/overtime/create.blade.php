@@ -375,7 +375,7 @@
       const diff = endMins - startMins;
 
       if (diff <= 0) {
-        return 1;
+        return 0;
       }
 
       // If spans to next day (endH >= 24)
@@ -391,12 +391,12 @@
           return 2;
         } else {
           // 00:00 to 01:59 (early hours) = 2 days
-          return 1;
+          return 0;
         }
       }
 
       // Same day only = 1 day
-      return 1;
+      return 0;
     }
 
     function updateOvertimeDaysDisplay(days) {

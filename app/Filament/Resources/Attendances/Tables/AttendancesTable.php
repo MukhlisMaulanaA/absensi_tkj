@@ -8,11 +8,14 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
+
+use function PHPUnit\Framework\isEmpty;
 
 class AttendancesTable
 {
@@ -80,18 +83,46 @@ class AttendancesTable
 
             $attendanceDate = $record->check_in_time->toDateString();
 
-            // Cari request lembur yang disetujui sesuai tanggal absensi
-            $overtimeRequest = \App\Models\OvertimeRequest::where('user_id', $record->user_id)
-              // ->where('status', 'approved')
+            $overtimeRequests = \App\Models\OvertimeRequest::where('user_id', $record->user_id)
               ->whereDate('start_time', '<=', $attendanceDate)
               ->whereDate('end_time', '>=', $attendanceDate)
-              ->first();
+              ->get();
 
-            if (!$overtimeRequest) {
+            if ($overtimeRequests->isEmpty()) {
               return '-';
             }
 
-            return $overtimeRequest->duration_hours . ' hours';
+            // Inisialisasi variabel penampung total
+            $totalDays = 0;
+            $totalHours = 0;
+
+            foreach ($overtimeRequests as $request) {
+              if ($request->overtime_days == 0) {
+                // Skenario 1: Jika hari 0, hitung selisih jam antara start_time dan end_time
+                $startTime = Carbon::parse($request->start_time);
+                $endTime = Carbon::parse($request->end_time);
+
+                // Menghitung selisih jam (gunakan diffInHours)
+                $totalHours += $startTime->diffInHours($endTime);
+              } else {
+                // Skenario 2: Jika hari > 0, langsung ambil nilai harinya saja
+                $totalDays += $request->overtime_days;
+              }
+            }
+
+            // Menyusun teks output berdasarkan hasil akumulasi
+            $result = [];
+
+            if ($totalDays > 0) {
+              $result[] = $totalDays . ' hari';
+            }
+
+            if ($totalHours > 0) {
+              $result[] = $totalHours . ' jam';
+            }
+
+            // Jika ada data tapi hasil akhirnya 0 (misal input salah), kembalikan '-'
+            return !empty($result) ? implode(' ', $result) : '-';
           }),
         TextColumn::make('late_minutes')
           ->label('Late (mins)')

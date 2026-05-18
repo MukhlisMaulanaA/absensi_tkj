@@ -40,7 +40,7 @@ class OvertimeCalculationService
     $daysDifference = $start->diffInDays($end, false); // false = without absolute
 
     // Default overtime = 1 day
-    $overtimeDays = 1;
+    $overtimeDays = 0;
 
     // If it spans to the next day
     if ($daysDifference > 0) {
@@ -53,7 +53,7 @@ class OvertimeCalculationService
         $overtimeDays = 2;
       } else {
         // 00:00 to 01:59 (early hours) = 2 days
-        $overtimeDays = 1;
+        $overtimeDays = 0;
       }
 
       // If it spans multiple days (2+ days difference)

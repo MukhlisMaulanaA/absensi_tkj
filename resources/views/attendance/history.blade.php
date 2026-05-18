@@ -14,10 +14,10 @@
   <div class="py-8 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ activeTab: 'attendance' }">
 
-      <!-- Navigation Tabs -->
       <div class="mb-8 flex gap-4 border-b border-gray-200">
         <button @click="activeTab = 'attendance'"
-          :class="activeTab === 'attendance' ? 'border-b-2 border-indigo-600 text-indigo-600 font-semibold' : 'text-gray-600 hover:text-gray-800'"
+          :class="activeTab === 'attendance' ? 'border-b-2 border-indigo-600 text-indigo-600 font-semibold' :
+              'text-gray-600 hover:text-gray-800'"
           class="pb-3 px-4 transition">
           <span class="inline-flex items-center gap-2">
             <span class="text-lg">📋</span>
@@ -25,7 +25,8 @@
           </span>
         </button>
         <button @click="activeTab = 'overtime'"
-          :class="activeTab === 'overtime' ? 'border-b-2 border-amber-600 text-amber-600 font-semibold' : 'text-gray-600 hover:text-gray-800'"
+          :class="activeTab === 'overtime' ? 'border-b-2 border-amber-600 text-amber-600 font-semibold' :
+              'text-gray-600 hover:text-gray-800'"
           class="pb-3 px-4 transition">
           <span class="inline-flex items-center gap-2">
             <span class="text-lg">⏰</span>
@@ -34,10 +35,8 @@
         </button>
       </div>
 
-      <!-- ATTENDANCE SECTION -->
       <div x-show="activeTab === 'attendance'" x-transition class="space-y-6">
 
-        <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
             <p class="text-gray-600 text-sm font-semibold uppercase">{{ __('Total Records') }}</p>
@@ -57,7 +56,6 @@
           </div>
         </div>
 
-        <!-- Attendance Table -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -67,6 +65,7 @@
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Check In') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Check Out') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Duration') }}</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Overtime') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Status') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Location') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Photos') }}</th>
@@ -101,14 +100,64 @@
                         <span class="text-gray-500">--</span>
                       @endif
                     </td>
+
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      @php
+                        $attendanceDate = $attendance->check_in_time->toDateString();
+
+                        // GANTI nama variabel menjadi $attendanceOvertimes agar tidak menimpa data Paginator
+                        $attendanceOvertimes = \App\Models\OvertimeRequest::where('user_id', $attendance->user_id)
+                            ->whereDate('start_time', '<=', $attendanceDate)
+                            ->whereDate('end_time', '>=', $attendanceDate)
+                            ->get();
+
+                        $totalDays = 0;
+                        $totalHours = 0;
+
+                        foreach ($attendanceOvertimes as $request) {
+                            // Sesuaikan di sini
+                            if ($request->overtime_days == 0) {
+                                // Jika hari 0, hitung selisih jam
+                                $startTime = \Carbon\Carbon::parse($request->start_time);
+                                $endTime = \Carbon\Carbon::parse($request->end_time);
+                                $totalHours += $startTime->diffInHours($endTime);
+                            } else {
+                                // Jika hari > 0, ambil nilai harinya
+                                $totalDays += $request->overtime_days;
+                            }
+                        }
+
+                        $result = [];
+                        if ($totalDays > 0) {
+                            $result[] = $totalDays . ' hari';
+                        }
+                        if ($totalHours > 0) {
+                            $result[] = $totalHours . ' jam';
+                        }
+
+                        $overtimeText = !empty($result) ? implode(' ', $result) : '-';
+                      @endphp
+
+                      @if ($overtimeText !== '-')
+                        <span
+                          class="inline-flex items-center bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold">
+                          {{ $overtimeText }}
+                        </span>
+                      @else
+                        <span class="text-gray-500">--</span>
+                      @endif
+                    </td>
+
                     <td class="px-6 py-4 text-sm">
                       @if ($attendance->is_within_radius)
-                        <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                        <span
+                          class="inline-flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
                           <span class="w-2 h-2 bg-green-600 rounded-full"></span>
                           {{ __('On Site') }}
                         </span>
                       @else
-                        <span class="inline-flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">
+                        <span
+                          class="inline-flex items-center gap-1 bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">
                           <span class="w-2 h-2 bg-red-600 rounded-full"></span>
                           {{ __('Off Site') }}
                         </span>
@@ -142,7 +191,7 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="7" class="px-6 py-12 text-center">
+                    <td colspan="8" class="px-6 py-12 text-center">
                       <div class="space-y-2">
                         <p class="text-gray-500">{{ __('No attendance records found') }}</p>
                         <a href="{{ route('dashboard') }}" class="text-indigo-600 hover:text-indigo-700 font-semibold">
@@ -156,7 +205,6 @@
             </table>
           </div>
 
-          <!-- Pagination -->
           @if ($attendances->hasPages())
             <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
               {{ $attendances->links('pagination::tailwind') }}
@@ -166,36 +214,33 @@
 
       </div>
 
-      <!-- OVERTIME SECTION -->
       <div x-show="activeTab === 'overtime'" x-transition class="space-y-6">
 
-        <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
             <p class="text-gray-600 text-sm font-semibold uppercase">{{ __('Total Requests') }}</p>
-            <p class="text-3xl font-bold text-blue-600 mt-2">{{ $overtimeRequests->total() }}</p>
+            <p class="text-3xl font-bold text-blue-600 mt-2">{{ $overtimeRequests->count() }}</p>
           </div>
           <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
             <p class="text-gray-600 text-sm font-semibold uppercase">{{ __('Pending') }}</p>
             <p class="text-3xl font-bold text-yellow-600 mt-2">
-              {{ $overtimeRequests->getCollection()->where('status', 'pending')->count() }}
+              {{ $overtimeRequests->where('status', 'pending')->count() }}
             </p>
           </div>
           <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
             <p class="text-gray-600 text-sm font-semibold uppercase">{{ __('Approved') }}</p>
             <p class="text-3xl font-bold text-green-600 mt-2">
-              {{ $overtimeRequests->getCollection()->where('status', 'approved')->count() }}
+              {{ $overtimeRequests->where('status', 'approved')->count() }}
             </p>
           </div>
           <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
             <p class="text-gray-600 text-sm font-semibold uppercase">{{ __('Rejected') }}</p>
             <p class="text-3xl font-bold text-red-600 mt-2">
-              {{ $overtimeRequests->getCollection()->where('status', 'rejected')->count() }}
+              {{ $overtimeRequests->where('status', 'rejected')->count() }}
             </p>
           </div>
         </div>
 
-        <!-- Request Button -->
         <div class="flex gap-4">
           <a href="{{ route('overtime.create') }}"
             class="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition">
@@ -204,7 +249,6 @@
           </a>
         </div>
 
-        <!-- Overtime Table -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -217,6 +261,7 @@
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Description') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Status') }}</th>
                   <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Approver') }}</th>
+                  <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ __('Action') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
@@ -273,6 +318,27 @@
                         <span class="text-gray-500">--</span>
                       @endif
                     </td>
+                    <td class="px-6 py-4 text-sm">
+                      @if ($overtime->user_id === auth()->id())
+                        <form action="{{ route('overtime.destroy', $overtime->id) }}" method="POST"
+                          onsubmit="return confirm('Delete this overtime request?')">
+                          @csrf
+                          @method('DELETE')
+
+                          <button type="submit"
+                            class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition text-xs font-semibold">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                              viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7L5 7M10 11V17M14 11V17M6 7L7 19C7.1 20.1 7.9 21 9 21H15C16.1 21 16.9 20.1 17 19L18 7M9 7V4C9 3.4 9.4 3 10 3H14C14.6 3 15 3.4 15 4V7" />
+                            </svg>
+
+                            Delete
+                          </button>
+                        </form>
+                      @endif
+                    </td>
                   </tr>
                 @empty
                   <tr>
@@ -291,7 +357,6 @@
             </table>
           </div>
 
-          <!-- Pagination -->
           @if ($overtimeRequests->hasPages())
             <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
               {{ $overtimeRequests->links('pagination::tailwind') }}

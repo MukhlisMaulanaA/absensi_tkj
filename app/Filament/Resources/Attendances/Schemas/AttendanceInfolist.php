@@ -10,6 +10,7 @@ use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Carbon;
 
 class AttendanceInfolist
 {
@@ -132,29 +133,6 @@ class AttendanceInfolist
                 return $record->working_hours . ' hours';
               })
               ->columnSpanFull(),
-            TextEntry::make('overtime_hours')
-              ->label('Overtime Hours')
-              ->getStateUsing(function ($record) {
-                if (!$record->user || !$record->check_in_time) {
-                  return '-';
-                }
-
-                $attendanceDate = $record->check_in_time->toDateString();
-
-                $overtimeRequest = \App\Models\OvertimeRequest::where('user_id', $record->user_id)
-                  ->where('status', 'approved')
-                  ->whereDate('start_time', '<=', $attendanceDate)
-                  ->whereDate('end_time', '>=', $attendanceDate)
-                  ->first();
-
-                if (!$overtimeRequest) {
-                  return '-';
-                }
-
-                return $overtimeRequest->duration_hours . ' hours';
-              })
-              ->columnSpanFull(),
-
           ]),
 
         // Location Map Section
@@ -195,24 +173,54 @@ class AttendanceInfolist
             TextEntry::make('overtime_hours')
               ->label('Overtime Hours')
               ->getStateUsing(function ($record) {
+                // Validasi jika relasi user atau check_in_time kosong
                 if (!$record->user || !$record->check_in_time) {
                   return '-';
                 }
 
                 $attendanceDate = $record->check_in_time->toDateString();
 
-                $overtimeRequest = OvertimeRequest::where('user_id', $record->user_id)
+                $overtimeRequests = OvertimeRequest::where('user_id', $record->user_id)
                   ->whereDate('start_time', '<=', $attendanceDate)
                   ->whereDate('end_time', '>=', $attendanceDate)
-                  ->first();
+                  ->get();
 
-                if (!$overtimeRequest) {
+                if ($overtimeRequests->isEmpty()) {
                   return '-';
                 }
 
-                return $overtimeRequest->duration_hours . ' hours';
-              })
-              ->columnSpan(1),
+                // Inisialisasi variabel penampung total
+                $totalDays = 0;
+                $totalHours = 0;
+
+                foreach ($overtimeRequests as $request) {
+                  if ($request->overtime_days == 0) {
+                    // Skenario 1: Jika hari 0, hitung selisih jam antara start_time dan end_time
+                    $startTime = Carbon::parse($request->start_time);
+                    $endTime = Carbon::parse($request->end_time);
+
+                    // Menghitung selisih jam (gunakan diffInHours)
+                    $totalHours += $startTime->diffInHours($endTime);
+                  } else {
+                    // Skenario 2: Jika hari > 0, langsung ambil nilai harinya saja
+                    $totalDays += $request->overtime_days;
+                  }
+                }
+
+                // Menyusun teks output berdasarkan hasil akumulasi
+                $result = [];
+
+                if ($totalDays > 0) {
+                  $result[] = $totalDays . ' hari';
+                }
+
+                if ($totalHours > 0) {
+                  $result[] = $totalHours . ' jam';
+                }
+
+                // Jika ada data tapi hasil akhirnya 0 (misal input salah), kembalikan '-'
+                return !empty($result) ? implode(' ', $result) : '-';
+              }),
             TextEntry::make('status')
               ->label('Status')
               ->badge() // 1. Tambahkan ini untuk mengubah teks biasa menjadi bentuk badge
@@ -252,10 +260,10 @@ class AttendanceInfolist
                 // --- OPSI 1: Jika Anda SUDAH punya relasi di Model OvertimeRequest ---
                 // Misal di model OvertimeRequest ada: public function approver() { return $this->belongsTo(User::class, 'approved_by'); }
                 return $overtimeRequest->approver->name;
-          
+
                 // --- OPSI 2: Jika BELUM punya relasi (Query manual) ---
                 // $approver = User::find($overtimeRequest->approved_by);
-
+          
                 return $approver ? $approver->name : '-';
               })
               ->icon('heroicon-o-check-badge') // (Opsional) Tambahkan icon agar tampilan lebih bagus
