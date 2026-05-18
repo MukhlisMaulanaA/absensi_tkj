@@ -22,8 +22,9 @@ class RecentOvertimeRequestsWidget extends BaseWidget
     return $table
       ->query(
         OvertimeRequest::query()
+          ->whereDate('created_at', today()) // 1. Filter hanya untuk hari ini
           ->orderBy('created_at', 'desc')
-          ->limit(5)
+          ->limit(10)
       )
       ->columns([
         Tables\Columns\TextColumn::make('user.name')
@@ -55,7 +56,7 @@ class RecentOvertimeRequestsWidget extends BaseWidget
           ->label('Duration')
           ->formatStateUsing(fn($state): string => $state . ' hrs'),
 
-        
+
       ])
       ->defaultPaginationPageOption(5)
       ->striped();
