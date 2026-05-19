@@ -675,6 +675,10 @@
         retakePhoto() {
           this.photo = null;
           this.photoPreview = null;
+          this.stopCamera();
+          this.$nextTick(() => {
+            this.openCamera();
+          });
         },
 
         async submit() {
