@@ -11,8 +11,10 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 use function PHPUnit\Framework\isEmpty;
@@ -148,6 +150,10 @@ class AttendancesTable
       ])
       ->defaultSort('check_in_time', 'desc')
       ->filters([
+        Filter::make('today')
+          ->label('Today Only')
+          ->toggle()
+          ->query(fn (Builder $query) => $query->whereDate('check_in_time', today())),
         TrashedFilter::make(),
       ])
       ->recordActions([
