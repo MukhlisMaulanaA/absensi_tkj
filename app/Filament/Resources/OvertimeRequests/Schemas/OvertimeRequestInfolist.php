@@ -4,9 +4,11 @@ namespace App\Filament\Resources\OvertimeRequests\Schemas;
 
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Filament\Infolists\Components\OvertimeMapEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid; // <-- Menggunakan Grid terpadu milik Filament v5
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Carbon\Carbon;
 
@@ -53,7 +55,6 @@ class OvertimeRequestInfolist
           })
           ->badge()
           ->color('success'),
-        // -------------------------------------------------
 
         TextEntry::make('description')
           ->columnSpanFull(),
@@ -102,6 +103,16 @@ class OvertimeRequestInfolist
         TextEntry::make('deleted_at')
           ->dateTime()
           ->visible(fn(OvertimeRequest $record): bool => $record->trashed()),
+        // Map Section
+        Section::make('Location Map')
+          ->icon('heroicon-o-map')
+          ->collapsible()
+          ->columnSpanFull()
+          ->schema([
+            OvertimeMapEntry::make('location_map')
+              ->columnSpanFull(),
+          ]),
+        // -------------------------------------------------
       ]);
   }
 }

@@ -47,6 +47,14 @@ class OvertimeRequestForm
           ->numeric()
           ->disabled()
           ->helperText('Hari lembur dihitung otomatis berdasarkan waktu mulai dan berakhir'),
+        TextInput::make('latitude')
+          ->label('Latitude')
+          ->numeric()
+          ->nullable(),
+        TextInput::make('longitude')
+          ->label('Longitude')
+          ->numeric()
+          ->nullable(),
       ]);
   }
 }

@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class OvertimeRequestResource extends Resource
 {
     protected static ?string $model = OvertimeRequest::class;
-
+  
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'overtimerequest';

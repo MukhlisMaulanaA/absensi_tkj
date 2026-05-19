@@ -36,6 +36,8 @@ class OvertimeRequestController extends Controller
       'description' => 'nullable|string|max:1000',
       'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
       'overtime_days' => 'nullable|integer',
+      'latitude' => 'required|numeric|between:-90,90',
+      'longitude' => 'required|numeric|between:-180,180',
     ]);
 
     $startTime = Carbon::parse($validated['start_time']);
@@ -48,6 +50,8 @@ class OvertimeRequestController extends Controller
       'description' => $validated['description'] ?? null,
       'status' => 'pending',
       'overtime_days' => $validated['overtime_days'] ?? OvertimeCalculationService::calculateOvertimeDays($startTime, $endTime),
+      'latitude' => isset($validated['latitude']) ? floatval($validated['latitude']) : null,
+      'longitude' => isset($validated['longitude']) ? floatval($validated['longitude']) : null,
     ];
 
     if ($request->hasFile('images')) {

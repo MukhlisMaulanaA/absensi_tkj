@@ -23,12 +23,16 @@ class OvertimeRequest extends Model
     'status',
     'approved_by',
     'overtime_days',
+    'latitude',
+    'longitude',
   ];
 
   protected $casts = [
     'start_time' => 'datetime',
     'end_time' => 'datetime',
     'image' => 'array',
+    'latitude' => 'float',
+    'longitude' => 'float',
   ];
   /*
   |--------------------------------------------------------------------------

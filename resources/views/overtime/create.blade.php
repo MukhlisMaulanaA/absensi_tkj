@@ -45,6 +45,8 @@
             @csrf
             <input type="hidden" name="start_time" id="start_time_input">
             <input type="hidden" name="end_time" id="end_time_input">
+            <input type="hidden" name="latitude" id="latitude_input">
+            <input type="hidden" name="longitude" id="longitude_input">
 
             <div class="grid grid-cols-1 gap-6">
 
@@ -219,6 +221,24 @@
                   <div id="imagePreviewContainer"
                     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-3 hidden">
                     <!-- Preview gambar akan di-inject lewat JavaScript di sini -->
+                  </div>
+                </div>
+              </div>
+
+              {{-- Location Map --}}
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Lokasi Permintaan</label>
+                <div class="rounded-xl border border-gray-200 overflow-hidden">
+                  <div id="overtime-map" style="width:100%;height:320px;"></div>
+                  <div class="p-3 flex items-center justify-between">
+                    <div class="text-sm text-gray-600">Koordinat: <span id="coordsDisplay">—</span></div>
+                    <div class="flex items-center gap-3">
+                      <button type="button" id="useLocationBtn"
+                        class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-xs">Gunakan
+                        Lokasi Saya</button>
+                      <button type="button" id="clearLocationBtn"
+                        class="text-sm text-red-500 underline">Hapus</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -648,6 +668,129 @@
           reader.readAsDataURL(file);
         }
       });
+
+      // --- Google Maps: Overtime location picker ---
+      const MAPS_API_KEY = "{{ config('services.google.maps_api_key') ?? env('GOOGLE_MAPS_API_KEY', '') }}";
+      const latInput = document.getElementById('latitude_input');
+      const lngInput = document.getElementById('longitude_input');
+      const coordsDisplay = document.getElementById('coordsDisplay');
+      let overtimeMap = null;
+      let overtimeMarker = null;
+
+      async function initOvertimeMap() {
+        if (typeof google === 'undefined' || !google.maps || !google.maps.importLibrary) {
+          console.warn('Google Maps API belum siap.');
+          return;
+        }
+
+        const { Map } = await google.maps.importLibrary('maps');
+        const { Marker } = await google.maps.importLibrary('marker');
+
+        const mapEl = document.getElementById('overtime-map');
+        if (!mapEl) return;
+
+        const initialLat = parseFloat(latInput.value) || -6.200000;
+        const initialLng = parseFloat(lngInput.value) || 106.816666;
+
+        overtimeMap = new Map(mapEl, {
+          zoom: 14,
+          center: { lat: initialLat, lng: initialLng },
+          mapTypeControl: true,
+          fullscreenControl: true,
+          streetViewControl: false,
+        });
+
+        if (latInput.value && lngInput.value) {
+          overtimeMarker = new Marker({
+            position: { lat: parseFloat(latInput.value), lng: parseFloat(lngInput.value) },
+            map: overtimeMap,
+          });
+          coordsDisplay.textContent = `${Number(latInput.value).toFixed(6)}, ${Number(lngInput.value).toFixed(6)}`;
+        }
+
+        // Click on map to place marker
+        mapEl.addEventListener('click', (ev) => {
+          const lat = ev.latLng.lat();
+          const lng = ev.latLng.lng();
+          if (!overtimeMarker) {
+            overtimeMarker = new Marker({ position: { lat, lng }, map: overtimeMap });
+          } else {
+            overtimeMarker.setPosition({ lat, lng });
+          }
+          latInput.value = lat;
+          lngInput.value = lng;
+          coordsDisplay.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        });
+
+        // Use device geolocation
+        document.getElementById('useLocationBtn').addEventListener('click', () => {
+          if (!navigator.geolocation) {
+            alert('Geolocation tidak didukung browser Anda.');
+            return;
+          }
+          navigator.geolocation.getCurrentPosition((pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            overtimeMap.setCenter({ lat, lng });
+            overtimeMap.setZoom(16);
+            if (!overtimeMarker) {
+              overtimeMarker = new Marker({ position: { lat, lng }, map: overtimeMap });
+            } else {
+              overtimeMarker.setPosition({ lat, lng });
+            }
+            latInput.value = lat;
+            lngInput.value = lng;
+            coordsDisplay.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          }, (err) => {
+            alert('Gagal mendapatkan lokasi: ' + err.message);
+          }, { enableHighAccuracy: true, timeout: 10000 });
+        });
+
+        document.getElementById('clearLocationBtn').addEventListener('click', () => {
+          if (overtimeMarker) {
+            overtimeMarker.setMap(null);
+            overtimeMarker = null;
+          }
+          latInput.value = '';
+          lngInput.value = '';
+          coordsDisplay.textContent = '—';
+        });
+      }
+
+      function loadGoogleMapsAndInitOvertime() {
+        if (!MAPS_API_KEY) {
+          console.warn('GOOGLE_MAPS_API_KEY not configured');
+          return;
+        }
+
+        if (window.google && window.google.maps && window.google.maps.importLibrary) {
+          initOvertimeMap();
+          return;
+        }
+
+        if (document.querySelector('script[data-gmaps-bootstrap]')) {
+          window.addEventListener('google-maps-ready', initOvertimeMap, { once: true });
+          return;
+        }
+
+        window.__googleMapsBootstrapOvertime = function() {
+          window.dispatchEvent(new Event('google-maps-ready'));
+          initOvertimeMap();
+        };
+
+        const script = document.createElement('script');
+        script.setAttribute('data-gmaps-bootstrap', '1');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&callback=__googleMapsBootstrapOvertime&libraries=geometry&loading=async`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadGoogleMapsAndInitOvertime);
+      } else {
+        loadGoogleMapsAndInitOvertime();
+      }
     });
   </script>
 
