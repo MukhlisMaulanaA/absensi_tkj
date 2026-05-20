@@ -83,11 +83,13 @@ class AttendancesTable
               return '-';
             }
 
-            $attendanceDate = $record->check_in_time->toDateString();
+            // Ambil tanggal absensi
+            $attendanceDate = Carbon::parse($record->check_in_time)->toDateString();
 
+            // Mengambil data lembur yang 'start_time'-nya SAMA PERSIS dengan tanggal absensi
             $overtimeRequests = \App\Models\OvertimeRequest::where('user_id', $record->user_id)
-              ->whereDate('start_time', '<=', $attendanceDate)
-              ->whereDate('end_time', '>=', $attendanceDate)
+              ->where('status', 'approved')
+              ->whereDate('start_time', $attendanceDate) // <-- HANYA AMBIL DI HARI YANG SAMA
               ->get();
 
             if ($overtimeRequests->isEmpty()) {
@@ -153,7 +155,7 @@ class AttendancesTable
         Filter::make('today')
           ->label('Today Only')
           ->toggle()
-          ->query(fn (Builder $query) => $query->whereDate('check_in_time', today())),
+          ->query(fn(Builder $query) => $query->whereDate('check_in_time', today())),
         TrashedFilter::make(),
       ])
       ->recordActions([

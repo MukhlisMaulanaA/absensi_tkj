@@ -14,6 +14,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter; // <-- TAMBAHKAN IMPORT INI
 use Filament\Tables\Table;
 
 class OvertimeRequestsTable
@@ -24,6 +25,7 @@ class OvertimeRequestsTable
       ->columns([
         TextColumn::make('user.name')
           ->label('Nama Karyawan')
+          ->searchable()
           ->sortable(),
         TextColumn::make('start_time')
           ->dateTime()
@@ -87,6 +89,16 @@ class OvertimeRequestsTable
       ])
       ->filters([
         TrashedFilter::make(),
+
+        // --- TAMBAHKAN KODE FILTER STATUS DI SINI ---
+        SelectFilter::make('status')
+          ->label('Filter Status')
+          ->options([
+            'pending' => 'Pending',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+          ]),
+        // --------------------------------------------
       ])
       ->recordActions([
         ViewAction::make(),
