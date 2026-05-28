@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\OvertimeRequestController;
+use App\Http\Controllers\LeaveRequestController;
 
 Route::get('/', function () {
   return redirect()->route('login');
@@ -38,4 +39,9 @@ Route::middleware(['auth'])->group(function () {
   Route::delete('/overtime/{overtime}', [OvertimeRequestController::class, 'destroy'])
     ->name('overtime.destroy')
     ->middleware('auth');
+});
+
+Route::middleware(['auth'])->group(function () {
+  Route::get('/leave/request', [LeaveRequestController::class, 'create'])->name('leave.create');
+  Route::post('/leave/request', [LeaveRequestController::class, 'store'])->name('leave.store');
 });

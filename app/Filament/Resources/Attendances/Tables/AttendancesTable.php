@@ -41,18 +41,34 @@ class AttendancesTable
               'on_time' => 'On Time',
               'late' => 'Late',
               'absent' => 'Absent',
+              'sick' => 'Sakit',
+              'permission' => 'Izin',
+              'leave' => 'Cuti',
             ];
-            return $statuses[$state] ?? $state;
+            return $statuses[$state] ?? ucfirst($state);
           })
           ->colors([
             'success' => 'on_time',
             'warning' => 'late',
             'danger' => 'absent',
+            'danger' => 'sick',       // Warna badge merah/merah muda untuk Sakit
+            'info' => 'permission', // Warna badge biru untuk Izin
+            'secondary' => 'leave',    // Warna badge abu-abu untuk Cuti
           ])
           ->getStateUsing(function ($record) {
+            // Ambil status asli langsung dari database untuk menghindari proteksi Eloquent
+            $statusAsli = $record->getRawOriginal('status') ?? $record->status;
+
+            // Jika status asli adalah perizinan, langsung kembalikan ke Filament
+            if (in_array($statusAsli, ['sick', 'permission', 'leave', 'absent'])) {
+              return $statusAsli;
+            }
+
+            // Jika statusnya kosong atau present, baru jalankan kalkulasi jam Anda
             if (!$record->check_in_time) {
               return 'absent';
             }
+
             return $record->late_minutes > 0 ? 'late' : 'on_time';
           }),
         TextColumn::make('check_in_time')

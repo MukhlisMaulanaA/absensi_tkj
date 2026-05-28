@@ -14,6 +14,8 @@ class Attendance extends Model
   protected $fillable = [
     'user_id',
     'location_id',
+    'status',
+    'reason',
 
     'check_in_time',
     'check_in_latitude',

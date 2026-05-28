@@ -206,6 +206,29 @@
           </svg>
         </a>
 
+        <a href="{{ route('leave.create') }}"
+          class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 group">
+
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-rose-600" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v12m8-12v12m-8-12a2 2 0 00-2 2v6a2 2 0 002 2h8a2 2 0 002-2v-6a2 2 0 00-2-2M9 7h6m0-4h-4m0 0H7m2 0v4" />
+              </svg>
+            </div>
+
+            <span class="text-sm font-medium text-slate-700">
+              {{ __('Request Leave') }}
+            </span>
+          </div>
+
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+
         <a href="{{ route('attendance.history') }}"
           class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors group">
 

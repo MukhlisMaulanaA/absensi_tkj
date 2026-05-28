@@ -68,6 +68,11 @@ class User extends Authenticatable implements FilamentUser
     return $this->hasMany(OvertimeRequest::class, 'approved_by');
   }
 
+  public function leaveRequests()
+  {
+    return $this->hasMany(LeaveRequest::class);
+  }
+
   /*
   |--------------------------------------------------------------------------
   | FILAMENT ACCESS
