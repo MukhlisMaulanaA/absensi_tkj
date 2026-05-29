@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\TimesheetController;
 
 Route::get('/', function () {
   return redirect()->route('login');
@@ -44,4 +45,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
   Route::get('/leave/request', [LeaveRequestController::class, 'create'])->name('leave.create');
   Route::post('/leave/request', [LeaveRequestController::class, 'store'])->name('leave.store');
+});
+
+Route::middleware(['auth'])->group(function () {
+  Route::get('/attendances/timesheet/pdf', [TimesheetController::class, 'download'])->name('attendances.timesheet.pdf');
 });
