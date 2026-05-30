@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\TimesheetService;
-use Illuminate\Http\Request;
-use Spatie\LaravelPdf\Facades\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use PDFShift\PDFShift;
 
 class TimesheetController extends Controller
 {
@@ -26,25 +28,66 @@ class TimesheetController extends Controller
     ]);
 
     $user = User::findOrFail($data['user_id']);
-
     $start = Carbon::parse($data['start_date']);
     $end = Carbon::parse($data['end_date']);
 
+    // Sekarang properti $this->service sudah aman diakses karena sudah di-init di constructor
     $viewData = $this->service->prepareTimesheetData($user, $start, $end);
 
     $filename = sprintf('timesheet_%s_%s_to_%s.pdf', $user->id, $start->format('Ymd'), $end->format('Ymd'));
 
-    // return Pdf::view('pdf.timesheet', $viewData)->download($filename);
-    return Pdf::view('pdf.timesheet', $viewData)
-      ->withBrowsershot(function ($browsershot) {
-        // Tambahkan dua baris ini untuk menstabilkan Chrome di Windows
-        $browsershot->noSandbox()
-                    ->disableGpu();
+    try {
+      // 1. Render file view menjadi string HTML murni
+      $html = view('pdf.timesheet', $viewData)->render();
 
-        // OPSI TAMBAHAN (Jika langkah di atas masih memunculkan kode error yang sama):
-        // Paksa sistem menggunakan Google Chrome utama komputer Anda yang sudah terpasang stabil:
-        $browsershot->setChromePath('C:\Program Files\Google\Chrome\Application\chrome.exe');
-      })
-      ->name($filename);
+      // 2. Ambil API Key dari .env
+      $apiKey = env('PDFSHIFT_API_KEY');
+
+      // 3. Tembak API dengan struktur JSON V3 yang sudah diperbaiki
+      $response = Http::withoutVerifying()
+        ->withHeaders([
+          'X-API-Key' => $apiKey,
+          'Content-Type' => 'application/json',
+        ])
+        ->post('https://api.pdfshift.io/v3/convert/pdf', [
+          'source' => $html,
+          'sandbox' => true, // Set true jika kuota 50 ingin hemat saat testing
+          // Di V3, margin bisa diatur langsung sebagai objek top, right, bottom, left
+          'margin' => [
+            'top' => '15mm',
+            'right' => '15mm',
+            'bottom' => '15mm',
+            'left' => '15mm'
+          ],
+          'landscape' => false,
+          'use_print' => false
+        ]);
+
+      // 4. Jika masih gagal, kita tangkap pesan error detail dari PDFShift
+      if ($response->failed()) {
+        throw new \Exception('PDFShift API Error (Status ' . $response->status() . '): ' . $response->body());
+      }
+
+      // 5. Ambil data biner PDF jika sukses
+      $pdfContent = $response->body();
+
+      // 6. Alirkan file ke tab baru browser
+      return response()->streamDownload(function () use ($pdfContent) {
+        echo $pdfContent;
+      }, $filename, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="' . $filename . '"',
+      ]);
+
+    } catch (\Exception $e) {
+      Log::error('PDFShift Timesheet Error: ' . $e->getMessage());
+
+      // Di sini kita return $e->getMessage() ke json sementara agar Anda bisa melihat 
+      // alasan spesifik kenapa Bad Request langsung dari layar browser tanpa buka log.
+      return response()->json([
+        'status' => 'error',
+        'message' => $e->getMessage()
+      ], 500);
+    }
   }
 }
