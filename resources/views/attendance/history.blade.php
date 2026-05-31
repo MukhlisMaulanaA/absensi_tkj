@@ -33,6 +33,19 @@
             {{ __('Overtime Requests') }} ({{ $overtimeRequests->total() }})
           </span>
         </button>
+        <button @click="activeTab = 'leave'"
+          :class="activeTab === 'leave'
+              ?
+              'border-b-2 border-purple-600 text-purple-600 font-semibold' :
+              'text-gray-600 hover:text-gray-800'"
+          class="pb-3 px-4 transition">
+
+          <span class="inline-flex items-center gap-2">
+            <span class="text-lg">📝</span>
+            Leave Requests ({{ $leaveRequests->total() }})
+          </span>
+
+        </button>
       </div>
 
       <div x-show="activeTab === 'attendance'" x-transition class="space-y-6">
@@ -362,6 +375,219 @@
               {{ $overtimeRequests->links('pagination::tailwind') }}
             </div>
           @endif
+        </div>
+
+      </div>
+
+      <div x-show="activeTab === 'leave'" x-transition class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+          <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+            <p class="text-gray-600 text-sm font-semibold uppercase">
+              Total Requests
+            </p>
+            <p class="text-3xl font-bold text-purple-600 mt-2">
+              {{ $leaveRequests->total() }}
+            </p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+            <p class="text-gray-600 text-sm font-semibold uppercase">
+              Pending
+            </p>
+            <p class="text-3xl font-bold text-yellow-600 mt-2">
+              {{ $leaveRequests->where('status', 'pending')->count() }}
+            </p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+            <p class="text-gray-600 text-sm font-semibold uppercase">
+              Approved
+            </p>
+            <p class="text-3xl font-bold text-green-600 mt-2">
+              {{ $leaveRequests->where('status', 'approved')->count() }}
+            </p>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+            <p class="text-gray-600 text-sm font-semibold uppercase">
+              Rejected
+            </p>
+            <p class="text-3xl font-bold text-red-600 mt-2">
+              {{ $leaveRequests->where('status', 'rejected')->count() }}
+            </p>
+          </div>
+
+        </div>
+
+        <div class="flex gap-4">
+
+          <a href="{{ route('leave.create') }}"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition">
+
+            <span>📝</span>
+            New Leave Request
+
+          </a>
+
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+
+          <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+              <thead class="bg-gray-100 border-b border-gray-200">
+                <tr>
+                  <th class="px-6 py-4 text-left">Type</th>
+                  <th class="px-6 py-4 text-left">Start Date</th>
+                  <th class="px-6 py-4 text-left">End Date</th>
+                  <th class="px-6 py-4 text-left">Duration</th>
+                  <th class="px-6 py-4 text-left">Reason</th>
+                  <th class="px-6 py-4 text-left">Attachment</th>
+                  <th class="px-6 py-4 text-left">Status</th>
+                  <th class="px-6 py-4 text-left">Approver</th>
+                  <th class="px-6 py-4 text-left">Action</th>
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-gray-200">
+
+                @forelse($leaveRequests as $leave)
+                  <tr class="hover:bg-gray-50">
+
+                    <td class="px-6 py-4">
+
+                      @php
+                        $types = [
+                            'sick' => 'Sakit',
+                            'permission' => 'Izin',
+                            'leave' => 'Cuti',
+                        ];
+                      @endphp
+
+                      {{ $types[$leave->type] ?? $leave->type }}
+
+                    </td>
+
+                    <td class="px-6 py-4">
+                      {{ $leave->start_date->format('d M Y') }}
+                    </td>
+
+                    <td class="px-6 py-4">
+                      {{ $leave->end_date->format('d M Y') }}
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                      {{ $leave->start_date->diffInDays($leave->end_date) + 1 }}
+                      Days
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                      <div class="max-w-xs">
+                        <p class="truncate" title="{{ $leave->reason }}">
+                          {{ $leave->reason }}
+                        </p>
+                      </div>
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                      @if ($leave->attachment)
+                        <a href="{{ Storage::url($leave->attachment) }}" target="_blank"
+                          class="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold">
+
+                          Preview
+
+                        </a>
+                      @else
+                        <span class="text-gray-400">--</span>
+                      @endif
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                      @if ($leave->status === 'pending')
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
+                          Pending
+                        </span>
+                      @elseif($leave->status === 'approved')
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                          Approved
+                        </span>
+                      @else
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">
+                          Rejected
+                        </span>
+                      @endif
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                      @if ($leave->approver)
+                        {{ $leave->approver->name }}
+                      @else
+                        --
+                      @endif
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                      @if ($leave->status === 'pending')
+                        <form method="POST" action="{{ route('leave.destroy', $leave) }}"
+                          onsubmit="return confirm('Delete this leave request?')">
+
+                          @csrf
+                          @method('DELETE')
+
+                          <button type="submit"
+                            class="bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 text-xs font-semibold">
+
+                            Delete
+
+                          </button>
+
+                        </form>
+                      @endif
+
+                    </td>
+
+                  </tr>
+
+                @empty
+
+                  <tr>
+                    <td colspan="9" class="px-6 py-12 text-center">
+
+                      <p class="text-gray-500">
+                        No leave requests found
+                      </p>
+
+                    </td>
+                  </tr>
+                @endforelse
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+          @if ($leaveRequests->hasPages())
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              {{ $leaveRequests->links('pagination::tailwind') }}
+            </div>
+          @endif
+
         </div>
 
       </div>

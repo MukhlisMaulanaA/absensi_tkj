@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\AttendanceService;
 use App\Models\Attendance;
+use App\Models\LeaveRequest;
+use App\Services\AttendanceService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AttendanceController
@@ -96,21 +97,25 @@ class AttendanceController
   {
     $user = Auth::user();
 
-    // Get attendance history with pagination
     $attendances = Attendance::where('user_id', $user->id)
       ->orderBy('check_in_time', 'desc')
       ->paginate(10, ['*'], 'attendance_page');
 
-    // Get overtime request history with pagination
     $overtimeRequests = \App\Models\OvertimeRequest::where('user_id', $user->id)
       ->with('approver')
       ->orderBy('created_at', 'desc')
       ->paginate(10, ['*'], 'overtime_page');
 
+    $leaveRequests = LeaveRequest::where('user_id', $user->id)
+      ->with('approver')
+      ->latest()
+      ->paginate(10, ['*'], 'leave_page');
+
     return view('attendance.history', [
       'user' => $user,
       'attendances' => $attendances,
       'overtimeRequests' => $overtimeRequests,
+      'leaveRequests' => $leaveRequests,
     ]);
   }
 }

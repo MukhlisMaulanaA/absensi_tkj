@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\LeaveRequest;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LeaveRequestController extends Controller
 {
@@ -48,6 +49,25 @@ class LeaveRequestController extends Controller
       ]);
     }
 
-    return redirect()->route('dashboard')->with('status', 'Leave request submitted.');
+    return redirect()
+      ->route('dashboard')
+      ->with('success', 'Leave request submitted successfully.');
+  }
+
+  public function destroy(LeaveRequest $leaveRequest)
+  {
+    abort_if($leaveRequest->user_id !== Auth::id(), 403);
+
+    if ($leaveRequest->status !== 'pending') {
+      return back()->with('error', 'Only pending requests can be deleted.');
+    }
+
+    if ($leaveRequest->attachment) {
+      Storage::disk('public')->delete($leaveRequest->attachment);
+    }
+
+    $leaveRequest->delete();
+
+    return back()->with('success', 'Leave request deleted successfully.');
   }
 }

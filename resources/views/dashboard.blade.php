@@ -213,12 +213,13 @@
             <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-rose-600" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7v12m8-12v12m-8-12a2 2 0 00-2 2v6a2 2 0 002 2h8a2 2 0 002-2v-6a2 2 0 00-2-2M9 7h6m0-4h-4m0 0H7m2 0v4" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8 7v12m8-12v12m-8-12a2 2 0 00-2 2v6a2 2 0 002 2h8a2 2 0 002-2v-6a2 2 0 00-2-2M9 7h6m0-4h-4m0 0H7m2 0v4" />
               </svg>
             </div>
 
             <span class="text-sm font-medium text-slate-700">
-              {{ __('Request Leave') }}
+              {{ __('Request Izin') }}
             </span>
           </div>
 
@@ -530,6 +531,20 @@
       </div>
     </div>
   </div>
+
+  @if (session('success'))
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: '{{ session('success') }}',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#4F46E5'
+        });
+      });
+    </script>
+  @endif
 
   <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

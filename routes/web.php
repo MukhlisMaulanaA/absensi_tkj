@@ -45,6 +45,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
   Route::get('/leave/request', [LeaveRequestController::class, 'create'])->name('leave.create');
   Route::post('/leave/request', [LeaveRequestController::class, 'store'])->name('leave.store');
+  Route::delete('/leave/request/{leaveRequest}', [LeaveRequestController::class, 'destroy'])
+    ->name('leave.destroy');
 });
 
 Route::middleware(['auth'])->group(function () {

@@ -51,9 +51,9 @@
                   class="w-full rounded-xl border-gray-200 bg-gray-50 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                   value="{{ old('type') }}">
                   <option value="">-- Select Leave Type --</option>
-                  <option value="sick" {{ old('type') === 'sick' ? 'selected' : '' }}>Sick Leave</option>
-                  <option value="permission" {{ old('type') === 'permission' ? 'selected' : '' }}>Permission</option>
-                  <option value="leave" {{ old('type') === 'leave' ? 'selected' : '' }}>Annual Leave</option>
+                  <option value="sick" {{ old('type') === 'sick' ? 'selected' : '' }}>Sakit</option>
+                  <option value="permission" {{ old('type') === 'permission' ? 'selected' : '' }}>Izin</option>
+                  <option value="leave" {{ old('type') === 'leave' ? 'selected' : '' }}>Cuti</option>
                 </select>
               </div>
 
