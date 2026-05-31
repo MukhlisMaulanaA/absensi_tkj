@@ -91,8 +91,8 @@ class TimesheetService
             ->format('H:i');
         }
 
-        // HITUNG LOGIKA U. OVERTIME HARIAN (DURASI KERJA FISIK >= 12 JAM)
-        if ($attendance->check_in_time && $attendance->check_out_time) {
+        /// KOREKSI 1: U. Overtime HANYA dihitung jika statusnya BUKAN sakit, izin, atau cuti
+        if (!in_array($rawStatus, ['sick', 'permission', 'leave']) && $attendance->check_in_time && $attendance->check_out_time) {
           $checkInCarbon = Carbon::parse($attendance->check_in_time);
           $checkOutCarbon = Carbon::parse($attendance->check_out_time);
 
@@ -100,7 +100,7 @@ class TimesheetService
 
           if ($durationHours >= 12) {
             $uOvertimeDaily = 1;
-            $uOvertimeDays++; // Tambahkan ke summary total akumulasi
+            $uOvertimeDays++;
           }
         }
 
@@ -113,10 +113,7 @@ class TimesheetService
           ];
 
           $keterangan = $statusMap[$rawStatus] ?? strtoupper($rawStatus);
-
-          if (!$isSunday) {
-            $hariKerja++;
-          }
+          
         } else {
           // Klasifikasi Kehadiran Normal (Present)
           if ($attendance->late_minutes > 0) {
