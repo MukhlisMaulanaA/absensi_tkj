@@ -209,6 +209,7 @@
         <th style="width:17%">Tgl - Bln</th>
         <th style="width:11%">In</th>
         <th style="width:11%">Out</th>
+        <th style="width:11%">Overtimes</th>
         <th style="width:32%">Keterangan</th>
       </tr>
     </thead>
@@ -219,6 +220,7 @@
           <td class="center">{{ $row['date_display'] }}</td>
           <td class="time-cell">{{ $row['in'] }}</td>
           <td class="time-cell">{{ $row['out'] }}</td>
+          <td class="time-cell">{{ $row['overtime_hours_daily'] }} Jam</td>
           <td class="keterangan">{{ $row['keterangan'] }}</td>
         </tr>
       @endforeach
@@ -247,7 +249,7 @@
       <div class="summary-row">
         <span class="summary-label">U. Over time</span>
         <span class="summary-colon">:</span>
-        <span class="summary-unit">{{ $summary['overtime_days'] ?? '-' }} Hari</span>
+        <span class="summary-unit">{{ $summary['u_overtime_days'] ?? '-' }} Hari</span>
       </div>
       @if(isset($summary['casbon']))
       <div class="summary-row" style="margin-top:3px;">

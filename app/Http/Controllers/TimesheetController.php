@@ -34,7 +34,7 @@ class TimesheetController extends Controller
     // Sekarang properti $this->service sudah aman diakses karena sudah di-init di constructor
     $viewData = $this->service->prepareTimesheetData($user, $start, $end);
 
-    $filename = sprintf('timesheet_%s_%s_to_%s.pdf', $user->id, $start->format('Ymd'), $end->format('Ymd'));
+    $filename = sprintf('timesheet_%s_%s_to_%s.pdf', $user->name, $start->format('dmy'), $end->format('dmy'));
 
     try {
       // 1. Render file view menjadi string HTML murni
@@ -71,12 +71,13 @@ class TimesheetController extends Controller
       // 5. Ambil data biner PDF jika sukses
       $pdfContent = $response->body();
 
-      // 6. Alirkan file ke tab baru browser
-      return response()->streamDownload(function () use ($pdfContent) {
-        echo $pdfContent;
-      }, $filename, [
-        'Content-Type' => 'application/pdf',
-        'Content-Disposition' => 'inline; filename="' . $filename . '"',
+      // 6. PERBAIKAN: Konversi ke Base64 dan lempar ke view Blade
+      $base64Pdf = base64_encode($pdfContent);
+
+      return view('pdf.preview', [
+        'pdfData' => $base64Pdf,
+        'filename' => $filename,
+        'user' => $user
       ]);
 
     } catch (\Exception $e) {

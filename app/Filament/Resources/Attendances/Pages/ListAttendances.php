@@ -46,6 +46,7 @@ class ListAttendances extends ListRecords
 
           // TRICK: Picu eksekusi JavaScript langsung ke browser Client untuk force open tab baru
           $action->getLivewire()->js("window.open('{$url}', '_blank');");
+
         })
         // Hapus ->openUrlInNewTab() karena sudah di-handle secara native oleh script window.open di atas
         ->modalWidth('xl'),
