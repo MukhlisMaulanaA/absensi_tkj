@@ -49,7 +49,7 @@ class LeaveRequestInfolist
                       }),
 
                     TextEntry::make('approver.name')
-                      ->label('Approved By')
+                      ->label('Approved or Rejected By')
                       ->placeholder('-')
                       ->visible(fn($record) => filled($record->approved_by)),
 

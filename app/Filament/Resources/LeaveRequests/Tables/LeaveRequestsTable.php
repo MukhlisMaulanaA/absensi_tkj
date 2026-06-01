@@ -66,12 +66,15 @@ class LeaveRequestsTable
       ->recordActions([
         ViewAction::make(),
         EditAction::make(),
+
+        // 1. OPSI APPROVE (Diubah visibilitasnya agar lebih aman)
         TableAction::make('approve')
           ->label('Approve')
           ->icon('heroicon-m-check-circle')
           ->color('success')
           ->requiresConfirmation()
-          ->visible(fn($record) => $record->status !== 'approved')
+          // Mengubah !== 'approved' menjadi === 'pending' agar tombol hilang jika sudah di-reject
+          ->visible(fn($record) => $record->status === 'pending')
           ->action(function (LeaveRequest $record) {
             try {
               $record->approveBy(Auth::id());
@@ -79,6 +82,30 @@ class LeaveRequestsTable
               Notification::make()->success()->title('Leave Approved')->send();
             } catch (\Exception $e) {
               Notification::make()->danger()->title('Approval Failed')->body($e->getMessage())->send();
+              throw $e;
+            }
+          }),
+
+        // 2. OPSI REJECT (Baru)
+        TableAction::make('reject')
+          ->label('Reject')
+          ->icon('heroicon-m-x-circle')
+          ->color('danger')
+          ->requiresConfirmation()
+          ->modalHeading('Tolak Pengajuan Izin')
+          ->modalDescription('Apakah Anda yakin ingin menolak pengajuan ini?')
+          ->visible(fn($record) => $record->status === 'pending') // Hanya muncul saat pending
+          ->action(function (LeaveRequest $record) {
+            try {
+              // Melakukan update status langsung ke database
+              $record->update([
+                'status' => 'rejected',
+                'approved_by' => Auth::id(),
+              ]);
+
+              Notification::make()->success()->title('Leave Request Rejected')->send();
+            } catch (\Exception $e) {
+              Notification::make()->danger()->title('Rejection Failed')->body($e->getMessage())->send();
               throw $e;
             }
           }),
