@@ -51,8 +51,8 @@ class TimesheetController extends Controller
         ])
         ->post('https://api.pdfshift.io/v3/convert/pdf', [
           'source' => $html,
-          'sandbox' => true, // Set true jika kuota 50 ingin hemat saat testing
-          // Di V3, margin bisa diatur langsung sebagai objek top, right, bottom, left
+          'sandbox' => false, // True for development False for Production
+          // V3 can adjust margin
           'margin' => [
             'top' => '15mm',
             'right' => '15mm',
