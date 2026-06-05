@@ -20,49 +20,49 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AttendanceResource extends Resource
 {
-    protected static ?string $model = Attendance::class;
+  protected static ?string $model = Attendance::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowRightEndOnRectangle;
 
-    protected static ?string $recordTitleAttribute = 'attendance';
+  protected static ?string $recordTitleAttribute = 'attendance';
 
-    public static function form(Schema $schema): Schema
-    {
-        return AttendanceForm::configure($schema);
-    }
+  public static function form(Schema $schema): Schema
+  {
+    return AttendanceForm::configure($schema);
+  }
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return AttendanceInfolist::configure($schema);
-    }
+  public static function infolist(Schema $schema): Schema
+  {
+    return AttendanceInfolist::configure($schema);
+  }
 
-    public static function table(Table $table): Table
-    {
-        return AttendancesTable::configure($table);
-    }
+  public static function table(Table $table): Table
+  {
+    return AttendancesTable::configure($table);
+  }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
+  public static function getRelations(): array
+  {
+    return [
+      //
+    ];
+  }
 
-    public static function getPages(): array
-    {
-        return [
-            'index' => ListAttendances::route('/'),
-            'create' => CreateAttendance::route('/create'),
-            'view' => ViewAttendance::route('/{record}'),
-            'edit' => EditAttendance::route('/{record}/edit'),
-        ];
-    }
+  public static function getPages(): array
+  {
+    return [
+      'index' => ListAttendances::route('/'),
+      'create' => CreateAttendance::route('/create'),
+      'view' => ViewAttendance::route('/{record}'),
+      'edit' => EditAttendance::route('/{record}/edit'),
+    ];
+  }
 
-    public static function getRecordRouteBindingEloquentQuery(): Builder
-    {
-        return parent::getRecordRouteBindingEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-    }
+  public static function getRecordRouteBindingEloquentQuery(): Builder
+  {
+    return parent::getRecordRouteBindingEloquentQuery()
+      ->withoutGlobalScopes([
+        SoftDeletingScope::class,
+      ]);
+  }
 }
