@@ -20,6 +20,8 @@ class OvertimeRequestInfolist
       ->components([
         Grid::make(2) // Grid dari Filament\Schemas\Components
           ->schema([
+            TextEntry::make('id')
+            ->label('ID OV'),
             TextEntry::make('user.name')
               ->label('Nama Karyawan'),
             TextEntry::make('overtime_days')

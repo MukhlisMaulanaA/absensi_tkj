@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use \Illuminate\Notifications\Notifiable;
 use App\Services\OvertimeCalculationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +13,14 @@ class OvertimeRequest extends Model
 {
   use HasFactory, SoftDeletes;
 
+  // Disable auto-increment because the primary key will be generated manually.
+  public $incrementing = false;
+
+  // Set the primary key data type to string.
+  protected $keyType = 'string';
+
   protected $fillable = [
+    'id',
     'user_id',
     'start_time',
     'end_time',
@@ -34,6 +40,59 @@ class OvertimeRequest extends Model
     'latitude' => 'float',
     'longitude' => 'float',
   ];
+
+  protected static function booted(): void
+  {
+    static::creating(function (self $overtimeRequest): void {
+      // Skip generation when an ID is already provided explicitly.
+      if (!empty($overtimeRequest->id)) {
+        return;
+      }
+
+      // Take the last two digits of the current year (YY).
+      $yearSuffix = now()->format('y');
+
+      // Get the current month number as integer (1-12).
+      $monthNumber = (int) now()->format('n');
+
+      // Map month 1..12 to letter A..L.
+      $monthLetterMap = [
+        1 => 'A',
+        2 => 'B',
+        3 => 'C',
+        4 => 'D',
+        5 => 'E',
+        6 => 'F',
+        7 => 'G',
+        8 => 'H',
+        9 => 'I',
+        10 => 'J',
+        11 => 'K',
+        12 => 'L',
+      ];
+
+      // Build the ID prefix in OV + YY + M format.
+      $prefix = 'OV' . $yearSuffix . $monthLetterMap[$monthNumber];
+
+      // Find the latest ID with the same prefix for the current month.
+      $latestRecord = self::query()
+        ->where('id', 'like', $prefix . '%')
+        ->orderByDesc('id')
+        ->first();
+
+      // Start sequence at 1 for a new month when no prior ID exists.
+      $nextSequence = 1;
+
+      // Increment sequence from the latest record when available.
+      if ($latestRecord) {
+        $lastSequence = (int) substr($latestRecord->id, -4);
+        $nextSequence = $lastSequence + 1;
+      }
+
+      // Assign final ID in OVYYM0001 format.
+      $overtimeRequest->id = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+    });
+  }
   /*
   |--------------------------------------------------------------------------
   | RELATIONSHIPS
