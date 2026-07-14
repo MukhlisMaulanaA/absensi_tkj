@@ -41,8 +41,7 @@ class TimesheetController extends Controller
       $html = view('pdf.timesheet', $viewData)->render();
 
       // 2. Ambil API Key dari .env
-      $apiKey = env('PDFSHIFT_API_KEY');
-
+      $apiKey = config('services.pdfshift.api_key') ?? env('PDFSHIFT_API_KEY') ?? '';
       // 3. Tembak API dengan struktur JSON V3 yang sudah diperbaiki
       $response = Http::withoutVerifying()
         ->withHeaders([
@@ -51,7 +50,7 @@ class TimesheetController extends Controller
         ])
         ->post('https://api.pdfshift.io/v3/convert/pdf', [
           'source' => $html,
-          'sandbox' => false, // True for development False for Production
+          'sandbox' => True, // True for development False for Production
           // V3 can adjust margin
           'margin' => [
             'top' => '15mm',

@@ -28,27 +28,34 @@ class TimesheetService
       ->get();
 
     $overtimeByDate = [];
-    $totalOvertimeHours = 0;
+    $totalOvertimeDaysAll = 0;
+    $totalOvertimeHoursAll = 0;
 
     foreach ($overtimeRequests as $req) {
-      $reqStart = Carbon::parse($req->start_time);
+      $dateKey = Carbon::parse($req->start_time)->toDateString();
 
-      if ($req->overtime_days && $req->overtime_days > 0) {
-        // Skema Multi-Hari Lembuur (Asumsi 8 Jam Kerja per Hari)
-        for ($i = 0; $i < $req->overtime_days; $i++) {
-          $dateKey = $reqStart->copy()->addDays($i)->toDateString();
-          $overtimeByDate[$dateKey] = ($overtimeByDate[$dateKey] ?? 0) + 8;
-          $totalOvertimeHours += 8;
-        }
+      if (!isset($overtimeByDate[$dateKey])) {
+        $overtimeByDate[$dateKey] = [
+          'days' => 0,
+          'hours' => 0
+        ];
+      }
+
+      // Adopsi Logika Tabel Filament Website
+      if ($req->overtime_days == 0) {
+        // Skenario 1: Jika hari 0, hitung selisih jam antara start_time dan end_time
+        $startTime = Carbon::parse($req->start_time);
+        $endTime = Carbon::parse($req->end_time);
+
+        // Menghitung selisih jam (gunakan diffInHours)
+        $hours = $startTime->diffInHours($endTime);
+        
+        $overtimeByDate[$dateKey]['hours'] += $hours;
+        $totalOvertimeHoursAll += $hours;
       } else {
-        // Skema Jam-jaman (Hari Tunggal)
-        $dateKey = $reqStart->toDateString();
-        $startOvt = Carbon::parse($req->start_time);
-        $endOvt = Carbon::parse($req->end_time);
-        $hours = round($startOvt->diffInMinutes($endOvt) / 60, 2);
-
-        $overtimeByDate[$dateKey] = ($overtimeByDate[$dateKey] ?? 0) + $hours;
-        $totalOvertimeHours += $hours;
+        // Skenario 2: Jika hari > 0, langsung ambil nilai harinya saja
+        $overtimeByDate[$dateKey]['days'] += $req->overtime_days;
+        $totalOvertimeDaysAll += $req->overtime_days;
       }
     }
 
@@ -137,7 +144,18 @@ class TimesheetService
       }
 
       // Ambil jam lembur yang sudah dipetakan di awal untuk tanggal ini
-      $dailyOvertimeHours = $overtimeByDate[$dateString] ?? 0;
+      $dailyOvt = $overtimeByDate[$dateString] ?? ['days' => 0, 'hours' => 0];
+      $dailyResult = [];
+
+      if ($dailyOvt['days'] > 0) {
+        $dailyResult[] = $dailyOvt['days'] . ' Hari';
+      }
+      if ($dailyOvt['hours'] > 0) {
+        $dailyResult[] = $dailyOvt['hours'] . ' Jam';
+      }
+
+      // Format string output tampilan harian (default '0 Jam' jika kosong)
+      $dailyOvertimeDisplay = !empty($dailyResult) ? implode(', ', $dailyResult) : '0 Jam';
 
       $rows[] = [
         'date' => $dateString,
@@ -145,8 +163,8 @@ class TimesheetService
         'date_display' => $date->locale('id')->translatedFormat('d F Y'),
         'in' => $in,
         'out' => $out,
-        'overtime_hours_daily' => $dailyOvertimeHours, // Jam Lembur Harian (Hasil Pengajuan)
-        'u_overtime' => $uOvertimeDaily,       // Indeks U. Overtime Harian (0 atau 1 Hari)
+        'overtime_hours_daily' => $dailyOvertimeDisplay, // Output String: "3 Hari" atau "2 Jam"
+        'u_overtime' => $uOvertimeDaily,       
         'keterangan' => $keterangan,
         'is_sunday' => $isSunday,
       ];
@@ -154,9 +172,19 @@ class TimesheetService
 
     $periodString = $startDate->locale('id')->translatedFormat('d F Y') . ' - ' . $endDate->locale('id')->translatedFormat('d F Y');
 
+    // Menyusun teks output untuk total akumulasi di footer summary
+    $summaryResult = [];
+    if ($totalOvertimeDaysAll > 0) {
+      $summaryResult[] = $totalOvertimeDaysAll . ' Hari';
+    }
+    if ($totalOvertimeHoursAll > 0) {
+      $summaryResult[] = $totalOvertimeHoursAll . ' Jam';
+    }
+    $totalOvertimeString = !empty($summaryResult) ? implode(', ', $summaryResult) : '0 Jam';
+
     return [
       'user' => $user,
-      'project' => optional($user->location)->name, // Diisi dari Assign Location proyek
+      'project' => optional($user->location)->name, 
       'jabatan' => $user->jabatan ?? '',
       'start_date' => $startDate,
       'end_date' => $endDate,
@@ -165,8 +193,8 @@ class TimesheetService
       'summary' => [
         'hari_kerja' => $hariKerja,
         'libur_masuk' => $liburMasuk,
-        'overtime_hours' => $totalOvertimeHours, // Total keseluruhan overtime
-        'u_overtime_days' => $uOvertimeDays, // Hasil Akumulasi U. Overtime untuk Footer PDF
+        'overtime_hours' => $totalOvertimeString, // Output string gabungan untuk footer
+        'u_overtime_days' => $uOvertimeDays, 
       ],
     ];
   }

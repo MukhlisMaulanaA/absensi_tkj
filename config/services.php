@@ -41,7 +41,7 @@ return [
 
   'pdfshift' => [
     'api_key' => env('PDFSHIFT_API_KEY'),
-    'url' => 'https://api.pdfshift.io/v2/convert/',
+    'url' => 'https://api.pdfshift.io/v3/convert/pdf',
   ],
 
 ];
