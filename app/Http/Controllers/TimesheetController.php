@@ -50,7 +50,7 @@ class TimesheetController extends Controller
         ])
         ->post('https://api.pdfshift.io/v3/convert/pdf', [
           'source' => $html,
-          'sandbox' => True, // True for development False for Production
+          'sandbox' => false, // True for development False for Production
           // V3 can adjust margin
           'margin' => [
             'top' => '15mm',
