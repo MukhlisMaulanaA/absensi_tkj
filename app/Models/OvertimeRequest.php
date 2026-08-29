@@ -41,56 +41,52 @@ class OvertimeRequest extends Model
     'longitude' => 'float',
   ];
 
-  protected static function booted(): void
+  protected static function booted()
   {
-    static::creating(function (self $overtimeRequest): void {
-      // Skip generation when an ID is already provided explicitly.
-      if (!empty($overtimeRequest->id)) {
-        return;
+    static::creating(function ($model) {
+      if (empty($model->id)) {
+        $year = date('y');
+        $monthsMap = [
+          1 => 'A',
+          2 => 'B',
+          3 => 'C',
+          4 => 'D',
+          5 => 'E',
+          6 => 'F',
+          7 => 'G',
+          8 => 'H',
+          9 => 'I',
+          10 => 'J',
+          11 => 'K',
+          12 => 'L'
+        ];
+        $monthLetter = $monthsMap[(int) date('n')];
+        $prefix = 'OV' . $year . $monthLetter;
+
+        // 1. PENTING: Gunakan withTrashed() agar ID data yang di-soft delete tetap terbaca
+        $lastRecord = static::withTrashed()
+          ->where('id', 'like', $prefix . '%')
+          ->orderBy('id', 'desc')
+          ->first();
+
+        if ($lastRecord) {
+          $lastNumber = (int) substr($lastRecord->id, -4);
+          $nextNumber = $lastNumber + 1;
+        } else {
+          $nextNumber = 1;
+        }
+
+        // 2. Loop pengaman: Pastikan candidate ID benar-benar belum terpakai di DB
+        do {
+          $candidateId = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+          $exists = static::withTrashed()->where('id', $candidateId)->exists();
+          if ($exists) {
+            $nextNumber++;
+          }
+        } while ($exists);
+
+        $model->id = $candidateId;
       }
-
-      // Take the last two digits of the current year (YY).
-      $yearSuffix = now()->format('y');
-
-      // Get the current month number as integer (1-12).
-      $monthNumber = (int) now()->format('n');
-
-      // Map month 1..12 to letter A..L.
-      $monthLetterMap = [
-        1 => 'A',
-        2 => 'B',
-        3 => 'C',
-        4 => 'D',
-        5 => 'E',
-        6 => 'F',
-        7 => 'G',
-        8 => 'H',
-        9 => 'I',
-        10 => 'J',
-        11 => 'K',
-        12 => 'L',
-      ];
-
-      // Build the ID prefix in OV + YY + M format.
-      $prefix = 'OV' . $yearSuffix . $monthLetterMap[$monthNumber];
-
-      // Find the latest ID with the same prefix for the current month.
-      $latestRecord = self::query()
-        ->where('id', 'like', $prefix . '%')
-        ->orderByDesc('id')
-        ->first();
-
-      // Start sequence at 1 for a new month when no prior ID exists.
-      $nextSequence = 1;
-
-      // Increment sequence from the latest record when available.
-      if ($latestRecord) {
-        $lastSequence = (int) substr($latestRecord->id, -4);
-        $nextSequence = $lastSequence + 1;
-      }
-
-      // Assign final ID in OVYYM0001 format.
-      $overtimeRequest->id = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
     });
   }
   /*
@@ -161,15 +157,15 @@ class OvertimeRequest extends Model
         Carbon::parse($this->start_time),
         Carbon::parse($this->end_time)
       );
-      
+
       if (!$this->overtime_days) {
         $this->overtime_days = $days;
       }
-      
+
       return $days;
     }
 
-    return 1; 
+    return 1;
   }
 
   /**

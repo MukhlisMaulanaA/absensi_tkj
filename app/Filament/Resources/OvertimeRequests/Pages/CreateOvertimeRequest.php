@@ -7,5 +7,5 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateOvertimeRequest extends CreateRecord
 {
-    protected static string $resource = OvertimeRequestResource::class;
+  protected static string $resource = OvertimeRequestResource::class;
 }
