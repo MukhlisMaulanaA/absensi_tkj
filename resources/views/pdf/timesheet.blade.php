@@ -220,7 +220,7 @@
           <td class="center">{{ $row['date_display'] }}</td>
           <td class="time-cell">{{ $row['in'] }}</td>
           <td class="time-cell">{{ $row['out'] }}</td>
-          <td class="time-cell">{{ $row['overtime_hours_daily'] }} Jam</td>
+          <td class="time-cell">{{ $row['overtime_hours_daily'] }}</td>
           <td class="keterangan">{{ $row['keterangan'] }}</td>
         </tr>
       @endforeach
@@ -244,7 +244,7 @@
       <div class="summary-row">
         <span class="summary-label">Over time</span>
         <span class="summary-colon">:</span>
-        <span class="summary-unit">{{ $summary['overtime_hours'] }} Jam</span>
+        <span class="summary-unit">{{ $summary['overtime_hours'] }}</span>
       </div>
       <div class="summary-row">
         <span class="summary-label">U. Over time</span>

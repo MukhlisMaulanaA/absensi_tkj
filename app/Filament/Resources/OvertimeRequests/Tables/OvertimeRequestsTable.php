@@ -22,7 +22,12 @@ class OvertimeRequestsTable
   public static function configure(Table $table): Table
   {
     return $table
+      ->defaultSort('created_at', 'desc')
       ->columns([
+        TextColumn::make('id')
+          ->label('ID')
+          ->sortable()
+          ->searchable(),
         TextColumn::make('user.name')
           ->label('Nama Karyawan')
           ->searchable()
