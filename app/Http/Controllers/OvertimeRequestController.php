@@ -15,21 +15,40 @@ class OvertimeRequestController extends Controller
     // Kembalikan array middleware di sini
     return [
       'auth',
-      // atau dengan opsi: new Middleware('auth', collect: ['index', 'show']),
+      // Anda juga bisa menyisipkan Closure Middleware langsung di sini sebagai alternatif routes/web.php:
+      // function ($request, $next) {
+      //   if (!config('app.features.overtime_client')) { abort(404); }
+      //   return $next($request);
+      // }
     ];
   }
-  // public function __construct()
-  // {
-  //   $this->middleware('auth');
-  // }
 
   public function create()
   {
+    // PROTEKSI TAHAP 1: Blokir akses halaman form
+    if (!config('app.features.overtime_client')) {
+      abort(404);
+    }
+
     return view('overtime.create');
   }
 
   public function store(Request $request)
   {
+    // PROTEKSI TAHAP 2: Blokir submit data jika fitur dimatikan (melindungi dari bypass via Postman/Inspect Element)
+    if (!config('app.features.overtime_client')) {
+      // Tangani request dari fetch/axios yang mengharapkan JSON
+      if ($request->expectsJson()) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Fitur pengajuan lembur saat ini sedang dinonaktifkan.',
+        ], 403); // 403 Forbidden
+      }
+
+      // Tangani form request biasa
+      return redirect()->route('dashboard')->with('error', 'Fitur pengajuan lembur saat ini sedang dinonaktifkan.');
+    }
+
     $validated = $request->validate([
       'start_time' => 'required|date',
       'end_time' => 'required|date|after:start_time',
@@ -84,6 +103,11 @@ class OvertimeRequestController extends Controller
 
   public function destroy(OvertimeRequest $overtime)
   {
+    // PROTEKSI TAHAP 3: Blokir penghapusan data jika fitur sedang dinonaktifkan
+    if (!config('app.features.overtime_client')) {
+      return back()->with('error', 'Fitur manajemen lembur saat ini sedang dinonaktifkan.');
+    }
+
     // Pastikan hanya pemilik overtime yang bisa hapus
     if ($overtime->user_id !== Auth::id()) {
       abort(403, 'Unauthorized action.');
