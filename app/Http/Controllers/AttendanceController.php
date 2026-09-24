@@ -101,11 +101,6 @@ class AttendanceController
       ->orderBy('check_in_time', 'desc')
       ->paginate(10, ['*'], 'attendance_page');
 
-    $overtimeRequests = \App\Models\OvertimeRequest::where('user_id', $user->id)
-      ->with('approver')
-      ->orderBy('created_at', 'desc')
-      ->paginate(10, ['*'], 'overtime_page');
-
     $leaveRequests = LeaveRequest::where('user_id', $user->id)
       ->with('approver')
       ->latest()
@@ -114,7 +109,6 @@ class AttendanceController
     return view('attendance.history', [
       'user' => $user,
       'attendances' => $attendances,
-      'overtimeRequests' => $overtimeRequests,
       'leaveRequests' => $leaveRequests,
     ]);
   }

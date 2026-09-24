@@ -12,14 +12,6 @@ class TimesheetService
 {
   /**
    * Prepare timesheet data for a user between two dates.
-<<<<<<< HEAD
-=======
-   *
-   * @param User $user
-   * @param Carbon $startDate
-   * @param Carbon $endDate
-   * @return array
->>>>>>> parent of 6874b2d (feat: Enhance attendance management with auto-checkout feature)
    */
   public function prepareTimesheetData(User $user, Carbon $startDate, Carbon $endDate): array
   {
@@ -64,11 +56,7 @@ class TimesheetService
     $uOvertimeDays = 0; // Untuk akumulasi U. Overtime nasional/perusahaan
 
     foreach ($period as $date) {
-<<<<<<< HEAD
       /** @var Carbon $date */
-=======
-      /** @var \Carbon\Carbon $date */
->>>>>>> parent of 6874b2d (feat: Enhance attendance management with auto-checkout feature)
       $dateString = $date->toDateString();
 
       $attendance = Attendance::where('user_id', $user->id)
@@ -130,13 +118,6 @@ class TimesheetService
             $keterangan = 'TERLAMBAT ' . $attendance->late_minutes . ' MENIT';
           }
 
-<<<<<<< HEAD
-          if ($attendance->check_out_source === 'system') {
-            $keterangan = trim($keterangan . ' CHECK-OUT OLEH SISTEM');
-          }
-
-=======
->>>>>>> parent of 6874b2d (feat: Enhance attendance management with auto-checkout feature)
           if ($isSunday) {
             $liburMasuk++;
           } else {
@@ -187,8 +168,4 @@ class TimesheetService
       ],
     ];
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> parent of 6874b2d (feat: Enhance attendance management with auto-checkout feature)

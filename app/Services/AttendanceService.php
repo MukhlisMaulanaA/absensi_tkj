@@ -8,12 +8,28 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceService 
 {
+  private function attendanceDayStart(): Carbon
+  {
+    $now = now();
+    $dayStart = $now->copy()->startOfDay()->addHours(6);
+
+    return $now->lt($dayStart) ? $dayStart->subDay() : $dayStart;
+  }
+
+  private function attendanceDayEnd(): Carbon
+  {
+    return $this->attendanceDayStart()->copy()->addDay();
+  }
+
   public function getTodayAttendanceStatus()
   {
     $user = \Illuminate\Support\Facades\Auth::user();
-    
+
     $attendance = Attendance::where('user_id', $user->id)
-      ->whereDate('check_in_time', today())
+      ->whereBetween('check_in_time', [
+        $this->attendanceDayStart(),
+        $this->attendanceDayEnd(),
+      ])
       ->first();
 
     if (!$attendance) {
@@ -45,7 +61,10 @@ class AttendanceService
     }
 
     $existing = Attendance::where('user_id', $user->id)
-      ->whereDate('check_in_time', today())
+      ->whereBetween('check_in_time', [
+        $this->attendanceDayStart(),
+        $this->attendanceDayEnd(),
+      ])
       ->first();
 
     if ($existing) {
@@ -89,7 +108,10 @@ class AttendanceService
     $user = Auth::user();
 
     $attendance = Attendance::where('user_id', $user->id)
-      ->whereDate('check_in_time', today())
+      ->whereBetween('check_in_time', [
+        $this->attendanceDayStart(),
+        $this->attendanceDayEnd(),
+      ])
       ->first();
 
     if (!$attendance) {

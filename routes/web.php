@@ -3,7 +3,6 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\TimesheetController;
 
@@ -33,14 +32,6 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__ . '/auth.php';
-
-Route::middleware(['auth'])->group(function () {
-  Route::get('/overtime/request', [OvertimeRequestController::class, 'create'])->name('overtime.create');
-  Route::post('/overtime/request', [OvertimeRequestController::class, 'store'])->name('overtime.store');
-  Route::delete('/overtime/{overtime}', [OvertimeRequestController::class, 'destroy'])
-    ->name('overtime.destroy')
-    ->middleware('auth');
-});
 
 Route::middleware(['auth'])->group(function () {
   Route::get('/leave/request', [LeaveRequestController::class, 'create'])->name('leave.create');

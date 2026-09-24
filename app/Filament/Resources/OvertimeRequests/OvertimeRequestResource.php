@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\OvertimeRequests;
 
-use App\Filament\Resources\OvertimeRequests\Pages\CreateOvertimeRequest;
 use App\Filament\Resources\OvertimeRequests\Pages\EditOvertimeRequest;
 use App\Filament\Resources\OvertimeRequests\Pages\ListOvertimeRequests;
 use App\Filament\Resources\OvertimeRequests\Pages\ViewOvertimeRequest;
@@ -52,7 +51,6 @@ class OvertimeRequestResource extends Resource
     {
         return [
             'index' => ListOvertimeRequests::route('/'),
-            'create' => CreateOvertimeRequest::route('/create'),
             'view' => ViewOvertimeRequest::route('/{record}'),
             'edit' => EditOvertimeRequest::route('/{record}/edit'),
         ];

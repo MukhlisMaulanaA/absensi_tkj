@@ -36,21 +36,6 @@
             class="text-xs px-1.5 py-0.5 rounded-full font-semibold transition-colors">{{ $attendances->total() }}</span>
         </button>
 
-        <button @click="activeTab = 'overtime'"
-          :class="activeTab === 'overtime'
-              ?
-              'border-b-2 border-amber-500 text-amber-600 font-semibold' :
-              'text-gray-400 font-normal'"
-          class="flex items-center gap-1.5 px-4 py-3 text-sm whitespace-nowrap transition-colors duration-150">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Lembur
-          <span :class="activeTab === 'overtime' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'"
-            class="text-xs px-1.5 py-0.5 rounded-full font-semibold transition-colors">{{ $overtimeRequests->total() }}</span>
-        </button>
-
         <button @click="activeTab = 'leave'"
           :class="activeTab === 'leave'
               ?
@@ -96,33 +81,6 @@
 
       {{-- Attendance Cards --}}
       @forelse($attendances as $attendance)
-        @php
-          $attendanceDate = $attendance->check_in_time->toDateString();
-          $attendanceOvertimes = \App\Models\OvertimeRequest::where('user_id', $attendance->user_id)
-              ->whereDate('start_time', '<=', $attendanceDate)
-              ->whereDate('end_time', '>=', $attendanceDate)
-              ->get();
-          $totalDays = 0;
-          $totalHours = 0;
-          foreach ($attendanceOvertimes as $request) {
-              if ($request->overtime_days == 0) {
-                  $totalHours += \Carbon\Carbon::parse($request->start_time)->diffInHours(
-                      \Carbon\Carbon::parse($request->end_time),
-                  );
-              } else {
-                  $totalDays += $request->overtime_days;
-              }
-          }
-          $result = [];
-          if ($totalDays > 0) {
-              $result[] = $totalDays . ' hari';
-          }
-          if ($totalHours > 0) {
-              $result[] = $totalHours . ' jam';
-          }
-          $overtimeText = !empty($result) ? implode(' ', $result) : null;
-        @endphp
-
         <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           {{-- Card Header --}}
           <div class="px-4 pt-3.5 pb-2 flex items-center justify-between">
@@ -131,12 +89,6 @@
               <p class="text-xs text-gray-400">{{ $attendance->check_in_time->format('d M Y') }}</p>
             </div>
             <div class="flex items-center gap-2">
-              @if ($overtimeText)
-                <span
-                  class="text-xs bg-amber-50 text-amber-600 font-semibold px-2 py-1 rounded-full border border-amber-100">
-                  +{{ $overtimeText }}
-                </span>
-              @endif
               @if ($attendance->is_within_radius)
                 <span
                   class="flex items-center gap-1 text-xs bg-green-50 text-green-600 font-semibold px-2.5 py-1 rounded-full border border-green-100">
@@ -271,7 +223,8 @@
 
     </div>
 
-    {{-- ======= OVERTIME TAB ======= --}}
+    @if (false)
+      {{-- Overtime requests are disabled. --}}
     <div x-show="activeTab === 'overtime'" x-transition:enter="transition ease-out duration-200"
       x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
       class="p-4 space-y-3">
@@ -407,6 +360,8 @@
       @endif
 
     </div>
+
+    @endif
 
     {{-- ======= LEAVE TAB ======= --}}
     <div x-show="activeTab === 'leave'" x-transition:enter="transition ease-out duration-200"
