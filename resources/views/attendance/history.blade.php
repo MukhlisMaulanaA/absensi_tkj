@@ -36,22 +36,20 @@
             class="text-xs px-1.5 py-0.5 rounded-full font-semibold transition-colors">{{ $attendances->total() }}</span>
         </button>
 
-        @if (config('app.features.overtime_client'))
-          <button @click="activeTab = 'overtime'"
-            :class="activeTab === 'overtime'
-                ?
-                'border-b-2 border-amber-500 text-amber-600 font-semibold' :
-                'text-gray-400 font-normal'"
-            class="flex items-center gap-1.5 px-4 py-3 text-sm whitespace-nowrap transition-colors duration-150">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Lembur
-            <span :class="activeTab === 'overtime' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'"
-              class="text-xs px-1.5 py-0.5 rounded-full font-semibold transition-colors">{{ $overtimeRequests->total() }}</span>
-          </button>
-        @endif
+        <button @click="activeTab = 'overtime'"
+          :class="activeTab === 'overtime'
+              ?
+              'border-b-2 border-amber-500 text-amber-600 font-semibold' :
+              'text-gray-400 font-normal'"
+          class="flex items-center gap-1.5 px-4 py-3 text-sm whitespace-nowrap transition-colors duration-150">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Lembur
+          <span :class="activeTab === 'overtime' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'"
+            class="text-xs px-1.5 py-0.5 rounded-full font-semibold transition-colors">{{ $overtimeRequests->total() }}</span>
+        </button>
 
         <button @click="activeTab = 'leave'"
           :class="activeTab === 'leave'

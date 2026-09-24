@@ -38,7 +38,8 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/overtime/request', [OvertimeRequestController::class, 'create'])->name('overtime.create');
   Route::post('/overtime/request', [OvertimeRequestController::class, 'store'])->name('overtime.store');
   Route::delete('/overtime/{overtime}', [OvertimeRequestController::class, 'destroy'])
-    ->name('overtime.destroy');
+    ->name('overtime.destroy')
+    ->middleware('auth');
 });
 
 Route::middleware(['auth'])->group(function () {

@@ -181,32 +181,31 @@
           </p>
         </div>
 
-        @if (config('app.features.overtime_client'))
-          <a href="{{ route('overtime.create') }}"
-            class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 group">
+        <a href="{{ route('overtime.create') }}"
+          class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 group">
 
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" fill="none"
-                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 5.884l.707-.707a2 2 0 012.828 0l.707.707m0 0l.707-.707a2 2 0 012.828 0l.707.707M12 5v3" />
-                </svg>
-              </div>
-
-              <span class="text-sm font-medium text-slate-700">
-                {{ __('Request Overtime') }}
-              </span>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 5.884l.707-.707a2 2 0 012.828 0l.707.707m0 0l.707-.707a2 2 0 012.828 0l.707.707M12 5v3" />
+              </svg>
             </div>
 
-            <svg xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" fill="none"
-              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        @endif
+            <span class="text-sm font-medium text-slate-700">
+              {{ __('Request Overtime') }}
+            </span>
+          </div>
+
+          <svg xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+
         <a href="{{ route('leave.create') }}"
           class="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 group">
 
